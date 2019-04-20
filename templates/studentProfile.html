@@ -12,17 +12,16 @@ Dana -->
  
  <!--list skills, each with a remove button -->      
 <form method="post" action="">
-    {% for skill in skills}
+    {% for skill in skills %}
          <p>
-          <label for="skill"}>{{skill}}</label>
-          <input id="skill" name="skill" type="text" value="{{skill}}">
-        </p>
-        <p><input type="submit" id="removeSkills" value="Remove"></p>
-    {% endfor }
+          <label for="skill"}>{{skill.skill}}</label>
+          <input id="skill" name="skill" type="text" value="{{skill.skill}}">
+          <input id="skill" class="submit" name="submit" type="submit" value="Remove"></p>
+    {% endfor %}
     
     <p>
         <input id="newSkill" name="newSkill" type="text">
-        <input name="submit" type="submit" value="Add skill">
+        <input class="submit" name="submit" type="submit" value="Add skill">
     </p>
 </form>
 

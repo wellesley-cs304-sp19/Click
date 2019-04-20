@@ -7,7 +7,7 @@ Dana -->
 <h1>Student Page</h1>
     <p> Welcome to Click! </p>
        
-    <p>You can <a href="studentProfile/{{email}}">manage your profile</a>, or search available
+    <p>You can <a href="{{url_for('studentProfile', email=email)}}">manage your profile</a>, or search available
     <a href="jobs.html">job postings</a>.</p>
 
 {% endblock %}

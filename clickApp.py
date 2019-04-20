@@ -80,10 +80,12 @@ def studentPage(email):
 #route to page that allows student to view profile and add skills    
 @app.route("/studentProfile/<email>", methods = ['GET', 'POST'])
 def studentProfile(email):
+    studentInfo = clickDatabase.getStudent(conn, email)
+    skills = clickDatabase.studentSkills(conn, email)
     #if GET, renders page with all information about student in database
     if request.method == 'GET':
-        studentInfo = clickDatabase.getStudent(conn, email)
-        skills = clickDatabase.studentSkills(conn, email)
+        #studentInfo = clickDatabase.getStudent(conn, email)
+        #skills = clickDatabase.studentSkills(conn, email)
         return render_template('studentProfile.html',
                             name = studentInfo['name'],
                             email = studentInfo['email'],
@@ -94,20 +96,14 @@ def studentProfile(email):
         if request.form['submit'] == 'Remove':
             skill = request.form.get('skill')
             clickDatabase.removeSkill(conn, email, skill)
-            return render_template('studentProfile.html',
-                            name = studentInfo['name'],
-                            email = studentInfo['email'],
-                            skills = skills)
+            return redirect(url_for('studentProfile',
+                            email = studentInfo['email']))
         #adding skill
         else:
             newSkill = request.form.get('newSkill')
             clickDatabase.addSkill(conn, email, newSkill)
-            return render_template('studentProfile.html',
-                            name = studentInfo['name'],
-                            email = studentInfo['email'],
-                            skills = skills)
-
-#put rest of routes/functions here
+            return redirect(url_for('studentProfile',
+                            email = studentInfo['email']))
 
 if __name__ == '__main__':
     app.debug = True

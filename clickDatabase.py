@@ -26,7 +26,7 @@ def studentSkills(conn, email):
     curs.execute('''select skill from skills inner join hasSkill using (sid)
     where hasSkill.email = %s''', [email])
     return curs.fetchall()
-  
+    
 #removes skill from student  
 def removeSkill(conn, email, skill):
     curs = conn.cursor(MySQLdb.cursors.DictCursor)
@@ -56,3 +56,4 @@ if __name__ == '__main__':
     conn = getConn('clickdb')
     #addSkill(conn, "student2@gmail.com", "editing")
     #print(removeSkill(conn, "student1@gmail.com", "math tutoring"))
+    #studentSkills(conn, "student1@gmail.com")
