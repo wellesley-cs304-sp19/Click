@@ -46,17 +46,16 @@ def login_required(f):
     return decorated_fcn()
 
 #route to the login page
-@app.route('/login/')
+@app.route('/login/',methods=['GET','POST'])
 def login():
     #the code below works well
-    return render_template('login.html')
+    #return render_template('login.html')
     
     #somehow the code below gives Bad Request: The browser (or proxy) sent a request that this server could not understand.
-    '''
     try:
         username=request.form['username']
         password=request.form['password']
-        conn=getConn('c9')
+        conn=getConn('clickdb')
         curs=conn.cursor(MySQLdb.cursors.DictCursor)
         curs.execute('select password from user where email=%s',[username])
         row=curs.fetchone()
@@ -64,8 +63,7 @@ def login():
             flash('Login failed. Please register or try again')
             return redirect(url_for('home'))
         hashed=row['password']
-        #if bcrypt.hashpw(password.encode('utf-8'),hashed.encode('utf-8'))==hashed:
-        if hashed==password:
+        if bcrypt.hashpw(password.encode('utf-8'),hashed.encode('utf-8'))==hashed:
             flash('Successfully logged in as'+username)
             session['username']=username
             session['logged_in']= True
@@ -76,9 +74,8 @@ def login():
     except Exception as err:
         flash('From submission error'+str(err))
         return redirect(url_for('home'))
-    '''
-    
-    
+        
+        
 #route to the register page
 @app.route('/register/')
 def register():
@@ -89,9 +86,9 @@ def register():
         if password1 != password2:
             flash('Passwords do not match.')
             return redirect(url_for('login'))
-        #hashed=bcrypt.hashpw(password1.encode('utf-8'),bcrypt.gensalt())
-        hashed=password1
-        conn=getConn('c9')
+        hashed=bcrypt.hashpw(password1.encode('utf-8'),bcrypt.gensalt())
+        #hashed=password1
+        conn=getConn('clickdb')
         curs=conn.cursor(MySQLdb.cursors.DictCursor)
         curs.execute('select email from user where email=%s',[username])
         row=curs.fetchone()
@@ -106,6 +103,23 @@ def register():
     except Exception as err:
         flash('From submission error'+str(err))
         return redirect(url_for('home'))
+
+#route to logout
+@app.route('/logout/')
+def logout():
+    try:
+        if 'username' in session:
+            username = session['username']
+            session.pop('username')
+            session.pop('logged_in')
+            flash('You are logged out')
+            return redirect(url_for('home'))
+        else:
+            flash('You are not logged in. Please login or register')
+            return redirect( url_for('home') )
+    except Exception as err:
+        flash('Error Message: '+str(err))
+        return redirect( url_for('home') )
         
 #route to page that student sees when first log in
 @app.route("/student/<email>")
