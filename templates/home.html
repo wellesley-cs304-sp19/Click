@@ -2,14 +2,27 @@
 Dana, Erica, and Gabby -->
 <!DOCTYPE html>
 <html lang ="en" >
-    
+<head>
+    <meta charset = 'utf-8'>
+    <meta name= author content= "Gabby Liu"
+    <title>{{title}}</title>
+    <link type="text/css" rel="stylesheet" href= "{{url_for('static', filename ='style.css')}}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+</head> 
+
+
 <head>
     {% block title %}
     <title>Click</title>
     {% endblock %}
 </head>
 
-<body>
+<body>  
+    <nav>
+        <a id='navLK' href="{{ url_for('login') }}"> Login </a>
+        <!--add more navigation here-->
+    </nav>
+
     {% block content %}
           {% with messages = get_flashed_messages() %}
         {% if messages %}
@@ -24,4 +37,5 @@ Dana, Erica, and Gabby -->
     <h1>Click</h1>
     {% endblock %}   
 </body>
+
 </html>
