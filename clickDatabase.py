@@ -49,8 +49,15 @@ def addSkill(conn, email, skill):
     #continue with inserting email and skill into hasSkill table
     nr = curs.execute('''insert into hasSkill(email, sid) values (%s, %s)''', [email, skillNum.values()[0]])
     return nr
-    
+
+#adds a new user
+def addUser(conn,email,password):
+    curs=conn.cursor()
+    newrow=curs.execute('''insert into user(email,password) values (%s,%s)''',[email,password])
+    return newrow
+
 #put rest of our functions here
+
    
 if __name__ == '__main__':
     conn = getConn('clickdb')

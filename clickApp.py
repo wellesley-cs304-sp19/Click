@@ -8,6 +8,7 @@ import sys
 import bcrypt
 import clickDatabase
 from functools import wraps
+import os
 
 app = Flask(__name__)
 
@@ -22,12 +23,12 @@ conn = clickDatabase.getConn('clickdb')
 @app.route("/")
 def home():
     return render_template('home.html')
-
-#route to the login page
-@app.route("/login")
-def login():
-    return render_template('login.html')
-
+    
+def getConn(db):
+    conn = MySQLdb.connect(user='ubuntu',host='localhost',password='',db=db)
+    conn.autocommit(True)
+    return conn
+    
 '''Since in the future, we want to have a user visiting
     a site to be redirected to the login page if they are
     not already logged in. We use a decorator to solve 
@@ -43,9 +44,43 @@ def login_required(f):
             flash('You need to login first')
             return redirect(url_for('login'))
     return decorated_fcn()
+
+#route to the login page
+@app.route('/login/')
+def login():
+    #the code below works well
+    return render_template('login.html')
+    
+    #somehow the code below gives Bad Request: The browser (or proxy) sent a request that this server could not understand.
+    '''
+    try:
+        username=request.form['username']
+        password=request.form['password']
+        conn=getConn('c9')
+        curs=conn.cursor(MySQLdb.cursors.DictCursor)
+        curs.execute('select password from user where email=%s',[username])
+        row=curs.fetchone()
+        if row is None:
+            flash('Login failed. Please register or try again')
+            return redirect(url_for('home'))
+        hashed=row['password']
+        #if bcrypt.hashpw(password.encode('utf-8'),hashed.encode('utf-8'))==hashed:
+        if hashed==password:
+            flash('Successfully logged in as'+username)
+            session['username']=username
+            session['logged_in']= True
+            return redirect(url_for('home'))
+        else:
+            flash('Login failed. Please register or try again')
+            return redirect(url_for('login'))
+    except Exception as err:
+        flash('From submission error'+str(err))
+        return redirect(url_for('home'))
+    '''
+    
     
 #route to the register page
-@app.route('/register')
+@app.route('/register/')
 def register():
     try:
         username=request.form['username']
@@ -54,8 +89,9 @@ def register():
         if password1 != password2:
             flash('Passwords do not match.')
             return redirect(url_for('login'))
-        hashed=bcrypt.hashpw(password1.encode('utf-8'),bcrypt.gensalt())
-        conn=clickDatabase.getConn('c9')
+        #hashed=bcrypt.hashpw(password1.encode('utf-8'),bcrypt.gensalt())
+        hashed=password1
+        conn=getConn('c9')
         curs=conn.cursor(MySQLdb.cursors.DictCursor)
         curs.execute('select email from user where email=%s',[username])
         row=curs.fetchone()
@@ -66,19 +102,21 @@ def register():
         session['username']=username
         session['logged_in']=True
         flash('Successfully logged in as'+username)
-        return redirect(url_for('login'))
+        return redirect(url_for('home'))
     except Exception as err:
         flash('From submission error'+str(err))
-        return redirect(url_for('index'))
+        return redirect(url_for('home'))
         
 #route to page that student sees when first log in
 @app.route("/student/<email>")
+#@login_required
 def studentPage(email):
     return render_template('student.html',
                             email=email)
 
 #route to page that allows student to view profile and add skills    
 @app.route("/studentProfile/<email>", methods = ['GET', 'POST'])
+#@login_required
 def studentProfile(email):
     #if GET, renders page with all information about student in database
     if request.method == 'GET':
