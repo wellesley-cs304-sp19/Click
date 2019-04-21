@@ -1,0 +1,29 @@
+<!--CS 304 Project
+Dana -->
+{% extends "home.html" %}
+
+{%block content %}
+        
+<h1>Your Profile</h1>
+
+<p>Name: {{name}}</p>
+
+<p>Email: {{email}}</p>
+ 
+ <!--list skills, each with a remove button -->      
+<form method="post" action="">
+    {% for skill in skills}
+         <p>
+          <label for="skill"}>{{skill}}</label>
+          <input id="skill" name="skill" type="text" value="{{skill}}">
+        </p>
+        <p><input type="submit" id="removeSkills" value="Remove"></p>
+    {% endfor }
+    
+    <p>
+        <input id="newSkill" name="newSkill" type="text">
+        <input name="submit" type="submit" value="Add skill">
+    </p>
+</form>
+
+{% endblock %}

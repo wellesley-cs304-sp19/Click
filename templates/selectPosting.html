@@ -1,0 +1,35 @@
+<!-- Erica Ma -->
+
+{% extends "jobPoster.html" %}
+
+{% block title %} Search {% endblock %}
+
+{% block content %}
+
+<div id="content">
+
+        <div id="flashes">
+        
+        
+        </div>
+      
+
+    <h1>Check Your Current Postings</h1>
+
+    <form method="POST">
+        <label for="select-name">Your Current Postings:
+        </label>
+        <select name="select-name" id = "select-name">
+          <option value="none">Choose One</option>
+          
+           {% for project in allPostings %}
+            <option value="{{ project[0] }}"> {{ project[1] }}</option>
+            {% endfor %}
+          
+        </select>
+        <input type="submit" name="menu-pid" value="Choose">
+    </form>
+
+    </div>
+    
+    {% endblock %}

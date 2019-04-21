@@ -27,7 +27,7 @@ values
 (2,1),
 (3,3);
 
-/*
+
 insert into hasSkill(email, sid)
 values
 ("student1@gmail.com",1),
@@ -37,5 +37,5 @@ values
 insert into apply(email, pid)
 values
 ("student1@gmail.com",1),
-("resident2@gmail.com",1),
-("student1@gmail.com",2);/*
+("student1@gmail.com",2),
+("student2@gmail.com",1);
