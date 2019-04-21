@@ -26,7 +26,7 @@ def studentSkills(conn, email):
     curs.execute('''select skill from skills inner join hasSkill using (sid)
     where hasSkill.email = %s''', [email])
     return curs.fetchall()
-  
+    
 #removes skill from student  
 def removeSkill(conn, email, skill):
     curs = conn.cursor(MySQLdb.cursors.DictCursor)
@@ -49,6 +49,12 @@ def addSkill(conn, email, skill):
     #continue with inserting email and skill into hasSkill table
     nr = curs.execute('''insert into hasSkill(email, sid) values (%s, %s)''', [email, skillNum.values()[0]])
     return nr
+    
+#adds a new user
+def addUser(conn,email,password):
+    curs=conn.cursor()
+    newrow=curs.execute('''insert into user(email,password) values (%s,%s)''',[email,password])
+    return newrow
     
 #put rest of our functions here
 
@@ -95,3 +101,4 @@ if __name__ == '__main__':
     conn = getConn('clickdb')
     #addSkill(conn, "student2@gmail.com", "editing")
     #print(removeSkill(conn, "student1@gmail.com", "math tutoring"))
+    #studentSkills(conn, "student1@gmail.com")

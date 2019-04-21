@@ -8,6 +8,10 @@ import sys
 import bcrypt
 import clickDatabase
 from functools import wraps
+<<<<<<< HEAD
+=======
+import os
+>>>>>>> 61191da32f7f52508101364fc5eef7b17dd0c35a
 
 app = Flask(__name__)
 
@@ -22,12 +26,21 @@ conn = clickDatabase.getConn('clickdb')
 @app.route("/")
 def home():
     return render_template('home.html')
+<<<<<<< HEAD
 
 #route to the login page
 @app.route("/login")
 def login():
     return render_template('login.html')
 
+=======
+    
+def getConn(db):
+    conn = MySQLdb.connect(user='ubuntu',host='localhost',password='',db=db)
+    conn.autocommit(True)
+    return conn
+    
+>>>>>>> 61191da32f7f52508101364fc5eef7b17dd0c35a
 '''Since in the future, we want to have a user visiting
     a site to be redirected to the login page if they are
     not already logged in. We use a decorator to solve 
@@ -43,9 +56,46 @@ def login_required(f):
             flash('You need to login first')
             return redirect(url_for('login'))
     return decorated_fcn()
+<<<<<<< HEAD
     
 #route to the register page
 @app.route('/register')
+=======
+
+#route to the login page
+@app.route('/login/',methods=['GET','POST'])
+def login():
+    #the code below works well
+    #return render_template('login.html')
+    
+    #somehow the code below gives Bad Request: The browser (or proxy) sent a request that this server could not understand.
+    try:
+        username=request.form['username']
+        password=request.form['password']
+        conn=getConn('clickdb')
+        curs=conn.cursor(MySQLdb.cursors.DictCursor)
+        curs.execute('select password from user where email=%s',[username])
+        row=curs.fetchone()
+        if row is None:
+            flash('Login failed. Please register or try again')
+            return redirect(url_for('home'))
+        hashed=row['password']
+        if bcrypt.hashpw(password.encode('utf-8'),hashed.encode('utf-8'))==hashed:
+            flash('Successfully logged in as'+username)
+            session['username']=username
+            session['logged_in']= True
+            return redirect(url_for('home'))
+        else:
+            flash('Login failed. Please register or try again')
+            return redirect(url_for('login'))
+    except Exception as err:
+        flash('From submission error'+str(err))
+        return redirect(url_for('home'))
+        
+        
+#route to the register page
+@app.route('/register/')
+>>>>>>> 61191da32f7f52508101364fc5eef7b17dd0c35a
 def register():
     try:
         username=request.form['username']
@@ -55,7 +105,12 @@ def register():
             flash('Passwords do not match.')
             return redirect(url_for('login'))
         hashed=bcrypt.hashpw(password1.encode('utf-8'),bcrypt.gensalt())
+<<<<<<< HEAD
         conn=clickDatabase.getConn('c9')
+=======
+        #hashed=password1
+        conn=getConn('clickdb')
+>>>>>>> 61191da32f7f52508101364fc5eef7b17dd0c35a
         curs=conn.cursor(MySQLdb.cursors.DictCursor)
         curs.execute('select email from user where email=%s',[username])
         row=curs.fetchone()
@@ -66,6 +121,7 @@ def register():
         session['username']=username
         session['logged_in']=True
         flash('Successfully logged in as'+username)
+<<<<<<< HEAD
         return redirect(url_for('login'))
     except Exception as err:
         flash('From submission error'+str(err))
@@ -73,10 +129,38 @@ def register():
         
 #route to page that student sees when first log in
 @app.route("/student/<email>")
+=======
+        return redirect(url_for('home'))
+    except Exception as err:
+        flash('From submission error'+str(err))
+        return redirect(url_for('home'))
+
+#route to logout
+@app.route('/logout/')
+def logout():
+    try:
+        if 'username' in session:
+            username = session['username']
+            session.pop('username')
+            session.pop('logged_in')
+            flash('You are logged out')
+            return redirect(url_for('home'))
+        else:
+            flash('You are not logged in. Please login or register')
+            return redirect( url_for('home') )
+    except Exception as err:
+        flash('Error Message: '+str(err))
+        return redirect( url_for('home') )
+        
+#route to page that student sees when first log in
+@app.route("/student/<email>")
+#@login_required
+>>>>>>> 61191da32f7f52508101364fc5eef7b17dd0c35a
 def studentPage(email):
     return render_template('student.html',
                             email=email)
 
+<<<<<<< HEAD
 #route to page that job poster sees when first log in
 @app.route("/jobPoster/<email>")
 def jobPosterPage(email):
@@ -90,6 +174,18 @@ def studentProfile(email):
     if request.method == 'GET':
         studentInfo = clickDatabase.getStudent(conn, email)
         skills = clickDatabase.studentSkills(conn, email)
+=======
+#route to page that allows student to view profile and add skills    
+@app.route("/studentProfile/<email>", methods = ['GET', 'POST'])
+#@login_required
+def studentProfile(email):
+    studentInfo = clickDatabase.getStudent(conn, email)
+    skills = clickDatabase.studentSkills(conn, email)
+    #if GET, renders page with all information about student in database
+    if request.method == 'GET':
+        #studentInfo = clickDatabase.getStudent(conn, email)
+        #skills = clickDatabase.studentSkills(conn, email)
+>>>>>>> 61191da32f7f52508101364fc5eef7b17dd0c35a
         return render_template('studentProfile.html',
                             name = studentInfo['name'],
                             email = studentInfo['email'],
@@ -100,14 +196,20 @@ def studentProfile(email):
         if request.form['submit'] == 'Remove':
             skill = request.form.get('skill')
             clickDatabase.removeSkill(conn, email, skill)
+<<<<<<< HEAD
             return render_template('studentProfile.html',
                             name = studentInfo['name'],
                             email = studentInfo['email'],
                             skills = skills)
+=======
+            return redirect(url_for('studentProfile',
+                            email = studentInfo['email']))
+>>>>>>> 61191da32f7f52508101364fc5eef7b17dd0c35a
         #adding skill
         else:
             newSkill = request.form.get('newSkill')
             clickDatabase.addSkill(conn, email, newSkill)
+<<<<<<< HEAD
             return render_template('studentProfile.html',
                             name = studentInfo['name'],
                             email = studentInfo['email'],
@@ -223,3 +325,11 @@ def search_student():
 if __name__ == '__main__':
     app.debug = True
     app.run('0.0.0.0',8082)
+=======
+            return redirect(url_for('studentProfile',
+                            email = studentInfo['email']))
+
+if __name__ == '__main__':
+    app.debug = True
+    app.run('0.0.0.0',8081)
+>>>>>>> 61191da32f7f52508101364fc5eef7b17dd0c35a

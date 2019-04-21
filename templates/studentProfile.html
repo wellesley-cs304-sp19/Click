@@ -12,6 +12,7 @@ Dana -->
  
  <!--list skills, each with a remove button -->      
 <form method="post" action="">
+<<<<<<< HEAD
     {% for skill in skills}
          <p>
           <label for="skill"}>{{skill}}</label>
@@ -23,6 +24,18 @@ Dana -->
     <p>
         <input id="newSkill" name="newSkill" type="text">
         <input name="submit" type="submit" value="Add skill">
+=======
+    {% for skill in skills %}
+         <p>
+          <label for="skill"}>{{skill.skill}}</label>
+          <input id="skill" name="skill" type="text" value="{{skill.skill}}">
+          <input id="skill" class="submit" name="submit" type="submit" value="Remove"></p>
+    {% endfor %}
+    
+    <p>
+        <input id="newSkill" name="newSkill" type="text">
+        <input class="submit" name="submit" type="submit" value="Add skill">
+>>>>>>> 61191da32f7f52508101364fc5eef7b17dd0c35a
     </p>
 </form>
 
