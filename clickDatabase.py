@@ -49,14 +49,52 @@ def addSkill(conn, email, skill):
     #continue with inserting email and skill into hasSkill table
     nr = curs.execute('''insert into hasSkill(email, sid) values (%s, %s)''', [email, skillNum.values()[0]])
     return nr
-
+    
 #adds a new user
 def addUser(conn,email,password):
     curs=conn.cursor()
     newrow=curs.execute('''insert into user(email,password) values (%s,%s)''',[email,password])
     return newrow
-
+    
 #put rest of our functions here
+
+
+#get info about a posting 
+def getPosting(conn, pid):
+    curs = conn.cursor(MySQLdb.cursors.DictCursor)
+    curs.execute('''Select * from project where pid = %s''', [pid])
+    return curs.fetchone()
+   
+#SQL query to get pid, name, pay, minimum hours, location from project table using the pid    
+def search_posting_pid(conn, pid): 
+    curs = conn.cursor()
+    curs.execute('''select pid,name,pay,minHours,
+    location from project where pid = %s;''',
+                    [pid])
+    return curs.fetchone()  
+
+#SQL code to insert posting using pid, name, pay, minimum hours, location    
+def insert_posting(conn, pid, name, pay, minHours, location): 
+    curs = conn.cursor()
+    curs.execute('''insert into posting(pid,name,minHours, location)
+values (%s,%s,%s, %s);''',
+                    [pid,name,minHours,location])
+    return curs
+  
+#SQL query to get a list of all current postings    
+def find_allPostings(conn):
+    curs = conn.cursor()
+    curs.execute('''select pid,name,pay,minHours, 
+    location from project;''')
+    allPostings = curs.fetchall()
+    return allPostings;
+
+#SQL query to get specifically email of a student with a given name 
+def get_email(conn, name):
+    curs = conn.cursor()
+    curs.execute('''select email from user where name like %s;''', [name + '%'])
+    email = curs.fetchone()
+    return email[0]
 
    
 if __name__ == '__main__':
