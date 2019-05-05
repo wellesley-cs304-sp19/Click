@@ -16,8 +16,6 @@ app.secret_key = ''.join([ random.choice(('ABCDEFGHIJKLMNOPQRSTUVXYZ' +
                                           'abcdefghijklmnopqrstuvxyz' +
                                           '0123456789'))
                            for i in range(20) ])
-                           
-conn = clickDatabase.getConn('clickdb')
 
 #route to the home page
 @app.route("/")
@@ -133,6 +131,7 @@ def jobPosterPage(email):
 @app.route("/studentProfile/<email>", methods = ['GET', 'POST'])
 #@login_required
 def studentProfile(email):
+    conn = clickDatabase.getConn('clickdb')
     studentInfo = clickDatabase.getStudent(conn, email)
     skills = clickDatabase.studentSkills(conn, email)
     #if GET, renders page with all information about student in database
@@ -159,6 +158,7 @@ def studentProfile(email):
 #route to page that allows job poster to see his/her current postings     
 @app.route("/posting/<pid>", methods = ['GET', 'POST'])
 def posting(pid):
+    conn = clickDatabase.getConn('clickdb')
     #if GET, renders page with all information about that posting in database
     if request.method == 'GET':
         postingInfo = clickDatabase.getPosting(conn, pid)
