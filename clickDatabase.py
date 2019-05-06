@@ -13,13 +13,13 @@ def getConn(db):
     conn.autocommit(True)
     return conn
 
-#gets student's profile from database
+'''Gets student's information (name, email) from database'''
 def getStudent(conn, email):
     curs = conn.cursor(MySQLdb.cursors.DictCursor)
-    curs.execute('''Select * from user where email = %s''', [email])
+    curs.execute('''Select name, email from user where email = %s''', [email])
     return curs.fetchone()
 
-#get all student's skills from database    
+'''Returns results of SQL query to get student's skills from the database'''   
 def studentSkills(conn, email):
     curs = conn.cursor(MySQLdb.cursors.DictCursor)
     #use inner join to get list of skills
@@ -27,27 +27,28 @@ def studentSkills(conn, email):
     where hasSkill.email = %s''', [email])
     return curs.fetchall()
     
-#removes skill from student  
+'''Removes skill from student'''  
 def removeSkill(conn, email, skill):
     curs = conn.cursor(MySQLdb.cursors.DictCursor)
-    curs.execute('''Select sid from skills where skill = %s''', [skill])
-    skillNum = curs.fetchone().values()[0]
-    nr = curs.execute('''delete from hasSkill where sid = %s and email = %s''', [skillNum, email])
+    nr = curs.execute('''delete from hasSkill where sid = 
+    (select sid from skills where skill = %s) and email = %s''', [skill, email])
     return nr
 
-#adds skill to student    
+'''Adds skill to student'''    
 def addSkill(conn, email, skill):
     curs = conn.cursor(MySQLdb.cursors.DictCursor)
 
     curs.execute('''Select sid from skills where skill = %s''', [skill])
-    skillNum = curs.fetchone()
+    skillQuery = curs.fetchone() #stores results from query to get skills
     #if skill not in skills table, add it
-    if skillNum == None:
+    if skillQuery == None:
         curs.execute('''insert into skills(skill) values (%s)''', [skill])
-        curs.execute('''Select sid from skills where skill = %s''', [skill])
-        skillNum = curs.fetchone()
+        curs.execute('''select last_insert_id()''')
+        skillNum = curs.fetchone()['last_insert_id()']
+    else:
+        skillNum = skillQuery['sid'] #set skillNum to sid from skillQuery
     #continue with inserting email and skill into hasSkill table
-    nr = curs.execute('''insert into hasSkill(email, sid) values (%s, %s)''', [email, skillNum.values()[0]])
+    nr = curs.execute('''insert into hasSkill(email, sid) values (%s, %s)''', [email, skillNum])
     return nr
     
 #adds a new user
@@ -99,6 +100,6 @@ def get_email(conn, name):
    
 if __name__ == '__main__':
     conn = getConn('clickdb')
-    #addSkill(conn, "student2@gmail.com", "editing")
+    #addSkill(conn, "student2@gmail.com", "public speaking")
     #print(removeSkill(conn, "student1@gmail.com", "math tutoring"))
-    #studentSkills(conn, "student1@gmail.com")
+    #print(studentSkills(conn, "student1@gmail.com"))

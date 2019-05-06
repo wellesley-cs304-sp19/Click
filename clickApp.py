@@ -114,7 +114,7 @@ def logout():
         flash('Error Message: '+str(err))
         return redirect( url_for('home') )
         
-#route to page that student sees when first log in
+'''route to page that student sees when first log in'''
 @app.route("/student/<email>")
 #@login_required
 def studentPage(email):
@@ -127,7 +127,9 @@ def jobPosterPage(email):
     return render_template('jobPoster.html',
                             email=email)                           
 
-#route to page that allows student to view profile and add skills    
+'''Route to page that allows student to view profile and add skills.
+   The student profile is for the student that is currently logged in.
+'''
 @app.route("/studentProfile/<email>", methods = ['GET', 'POST'])
 #@login_required
 def studentProfile(email):
@@ -150,10 +152,17 @@ def studentProfile(email):
                             email = studentInfo['email']))
         #adding skill
         else:
-            newSkill = request.form.get('newSkill')
-            clickDatabase.addSkill(conn, email, newSkill)
-            return redirect(url_for('studentProfile',
-                            email = studentInfo['email']))
+            #try and except to handle errors if user tries to enter a
+            #skill they've already added to their profile
+            try:
+                newSkill = request.form.get('newSkill')
+                clickDatabase.addSkill(conn, email, newSkill)
+                return redirect(url_for('studentProfile',
+                                email = studentInfo['email']))
+            except:
+                flash("Error. Skill may already be in your profile.")
+                return redirect(url_for('studentProfile',
+                                email = studentInfo['email']))
 
 #route to page that allows job poster to see his/her current postings     
 @app.route("/posting/<pid>", methods = ['GET', 'POST'])

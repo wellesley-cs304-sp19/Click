@@ -3,7 +3,16 @@ Dana -->
 {% extends "home.html" %}
 
 {%block content %}
-        
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div id="messages">
+            {% for msg in messages %}
+                <p>{{msg}}</p>
+            {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    
 <h1>Your Profile</h1>
 
 <p>Name: {{name}}</p>
