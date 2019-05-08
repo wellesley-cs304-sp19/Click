@@ -51,6 +51,8 @@ def addSkill(conn, email, skill):
     nr = curs.execute('''insert into hasSkill(email, sid) values (%s, %s)''', [email, skillNum])
     return nr
     
+
+    
 #adds a new user
 def addUser(conn,email,password):
     curs=conn.cursor()
