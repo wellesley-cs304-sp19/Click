@@ -163,6 +163,30 @@ def studentProfile(email):
                 flash("Error. Skill may already be in your profile.")
                 return redirect(url_for('studentProfile',
                                 email = studentInfo['email']))
+ 
+'''Route to page to update student profile'''                             
+@app.route("/studentUpdate/<email>", methods = ['GET', 'POST'])
+def studentUpdate(email):
+    conn = clickDatabase.getConn('clickdb')
+    studentInfo = clickDatabase.getStudent(conn, email)
+    skills = clickDatabase.studentSkills(conn, email)
+    #if GET, renders page with given information as default values in form
+    if request.method == 'GET':
+        return render_template('studentUpdate.html',
+                            name = studentInfo['name'],
+                            email = studentInfo['email'],
+                            active = studentInfo['active'],
+                            skills = skills)
+    #if POST, updates profile
+    else:
+        if request.form['submit'] == 'update':
+            newName = request.form.get('studentName')
+            newEmail = request.form.get('studentEmail')
+            newActive = request.form.get('studentActive')
+       
+            clickDatabase.updateStudentProfile(conn, email, newEmail, newName, newActive)
+            flash("Profile successfully updated")
+            return redirect(url_for('studentProfile', email=newEmail))
 
 #route to page that allows job poster to see his/her current postings     
 @app.route("/posting/<pid>", methods = ['GET', 'POST'])

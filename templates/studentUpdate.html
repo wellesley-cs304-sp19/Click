@@ -13,11 +13,22 @@ Dana -->
         {% endif %}
     {% endwith %}
     
-<h1>Your Profile</h1>
-
-<p>Name: {{name}}</p>
-
-<p>Email: {{email}}</p>
+<h1>Update Your Profile</h1>
+<form method="POST" action="">
+        <p>
+          <label for="studentName">Name:</label>
+          <input id="studentName" name="studentName" type="text" value="{{name}}">
+        </p>
+        <p>
+          <label for="studentEmail">Email:</label>
+          <input id="studentEmail" name="studentEmail" type="text" value="{{email}}">
+        </p>
+        <p>
+          <label for="studentActive">Actively seeking employment:</label>
+          <input id="studentActive" name="studentActive" type="text" value="{{active}}">
+        </p>
+        <p><input class="submit" name="submit" type="submit" value="update"></p>
+</form>
  
  <!--list skills, each with a remove button -->      
 {% for skill in skills %}
@@ -35,7 +46,5 @@ Dana -->
             <input class="submit" name="submit" type="submit" value="Add skill">
         </p>
     </form>
-    
-<p><a href="{{url_for('studentUpdate', email=email)}}">Update profile</a></p>
 
 {% endblock %}

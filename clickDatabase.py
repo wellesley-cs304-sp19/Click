@@ -16,7 +16,7 @@ def getConn(db):
 '''Gets student's information (name, email) from database'''
 def getStudent(conn, email):
     curs = conn.cursor(MySQLdb.cursors.DictCursor)
-    curs.execute('''Select name, email from user where email = %s''', [email])
+    curs.execute('''Select name, email, active from user where email = %s''', [email])
     return curs.fetchone()
 
 '''Returns results of SQL query to get student's skills from the database'''   
@@ -50,8 +50,14 @@ def addSkill(conn, email, skill):
     #continue with inserting email and skill into hasSkill table
     nr = curs.execute('''insert into hasSkill(email, sid) values (%s, %s)''', [email, skillNum])
     return nr
-    
 
+'''Update student's name, email, and/or active status'''
+def updateStudentProfile(conn, oldEmail, newEmail, newName, newActive):
+    curs = conn.cursor(MySQLdb.cursors.DictCursor)
+    nr = curs.execute('''update user
+                    set email = %s, name = %s, active = %s where email = %s''',
+                    [newEmail, newName, newActive, oldEmail])
+    return nr
     
 #adds a new user
 def addUser(conn,email,password):
@@ -59,9 +65,6 @@ def addUser(conn,email,password):
     newrow=curs.execute('''insert into user(email,password) values (%s,%s)''',[email,password])
     return newrow
     
-#put rest of our functions here
-
-
 #get info about a posting 
 def getPosting(conn, pid):
     curs = conn.cursor(MySQLdb.cursors.DictCursor)
