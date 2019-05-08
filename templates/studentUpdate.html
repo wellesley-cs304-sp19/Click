@@ -14,23 +14,27 @@ Dana -->
     {% endwith %}
     
 <h1>Update Your Profile</h1>
+<h3>Update Your Personal Information</h3>
 <form method="POST" action="">
         <p>
           <label for="studentName">Name:</label>
           <input id="studentName" name="studentName" type="text" value="{{name}}">
         </p>
         <p>
-          <label for="studentEmail">Email:</label>
-          <input id="studentEmail" name="studentEmail" type="text" value="{{email}}">
+          Email: {{email}}
         </p>
         <p>
           <label for="studentActive">Actively seeking employment:</label>
-          <input id="studentActive" name="studentActive" type="text" value="{{active}}">
+          <select id="studentActive" name="studentActive">
+              <option>yes</option>
+              <option>no</option>
+          </select>
         </p>
-        <p><input class="submit" name="submit" type="submit" value="update"></p>
+        <p><input class="submit" name="submit" type="submit" value="Update Personal Information"></p>
 </form>
  
- <!--list skills, each with a remove button -->      
+ <h3>Update Your Skills</h3>
+ <!--list skills, each with a remove button -->    
 {% for skill in skills %}
     <form method="post" action="">
          <p>
@@ -44,6 +48,12 @@ Dana -->
         <p>
             <input id="newSkill" name="newSkill" type="text">
             <input class="submit" name="submit" type="submit" value="Add skill">
+        </p>
+    </form>
+    
+    <form method="post" action="">
+        <p>
+            <input class="submit" name="submit" type="submit" value="Update Profile">
         </p>
     </form>
 

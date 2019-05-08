@@ -130,39 +130,18 @@ def jobPosterPage(email):
 '''Route to page that allows student to view profile and add skills.
    The student profile is for the student that is currently logged in.
 '''
-@app.route("/studentProfile/<email>", methods = ['GET', 'POST'])
+@app.route("/studentProfile/<email>", methods = ['GET'])
 #@login_required
 def studentProfile(email):
     conn = clickDatabase.getConn('clickdb')
     studentInfo = clickDatabase.getStudent(conn, email)
     skills = clickDatabase.studentSkills(conn, email)
-    #if GET, renders page with all information about student in database
-    if request.method == 'GET':
-        return render_template('studentProfile.html',
-                            name = studentInfo['name'],
-                            email = studentInfo['email'],
-                            skills = skills)
-    #if POST, either adding or removing a skill
-    else:
-        #removing skill
-        if request.form['submit'] == 'Remove':
-            skill = request.form.get('skill')
-            clickDatabase.removeSkill(conn, email, skill)
-            return redirect(url_for('studentProfile',
-                            email = studentInfo['email']))
-        #adding skill
-        else:
-            #try and except to handle errors if user tries to enter a
-            #skill they've already added to their profile
-            try:
-                newSkill = request.form.get('newSkill')
-                clickDatabase.addSkill(conn, email, newSkill)
-                return redirect(url_for('studentProfile',
-                                email = studentInfo['email']))
-            except:
-                flash("Error. Skill may already be in your profile.")
-                return redirect(url_for('studentProfile',
-                                email = studentInfo['email']))
+    #renders page with all information about student in database
+    return render_template('studentProfile.html',
+                        name = studentInfo['name'],
+                        email = studentInfo['email'],
+                        active = studentInfo['active'],
+                        skills = skills)
  
 '''Route to page to update student profile'''                             
 @app.route("/studentUpdate/<email>", methods = ['GET', 'POST'])
@@ -179,14 +158,36 @@ def studentUpdate(email):
                             skills = skills)
     #if POST, updates profile
     else:
-        if request.form['submit'] == 'update':
+        # if student updates name, email, or active status
+        if request.form['submit'] == 'Update Personal Information':
             newName = request.form.get('studentName')
             newEmail = request.form.get('studentEmail')
             newActive = request.form.get('studentActive')
-       
             clickDatabase.updateStudentProfile(conn, email, newEmail, newName, newActive)
             flash("Profile successfully updated")
-            return redirect(url_for('studentProfile', email=newEmail))
+            return redirect(url_for('studentUpdate', email=newEmail))
+        # if student removes a skill
+        elif request.form['submit'] == 'Remove':
+            skill = request.form.get('skill')
+            clickDatabase.removeSkill(conn, email, skill)
+            return redirect(url_for('studentUpdate',
+                            email = studentInfo['email']))
+        #adding skill
+        elif request.form['submit'] == 'Add skill':
+            #try and except to handle errors if user tries to enter a
+            #skill they've already added to their profile
+            try:
+                newSkill = request.form.get('newSkill')
+                clickDatabase.addSkill(conn, email, newSkill)
+                return redirect(url_for('studentUpdate',
+                                email = studentInfo['email']))
+            except:
+                flash("Error. Skill may already be in your profile.")
+                return redirect(url_for('studentUpdate',
+                                email = studentInfo['email']))
+        else:
+            return redirect(url_for('studentProfile',
+                            email = studentInfo['email']))
 
 #route to page that allows job poster to see his/her current postings     
 @app.route("/posting/<pid>", methods = ['GET', 'POST'])
