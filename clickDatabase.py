@@ -59,6 +59,18 @@ def updateStudentProfile(conn, oldEmail, newEmail, newName, newActive):
                     [newEmail, newName, newActive, oldEmail])
     return nr
     
+'''Get all jobs in the database'''
+def getJobs(conn):
+    curs = conn.cursor(MySQLdb.cursors.DictCursor)
+    curs.execute('''select pid, name, minHours, pay, location from project''')
+    return curs.fetchall()
+    
+def searchJobs(conn, search):
+    curs = conn.cursor(MySQLdb.cursors.DictCursor)
+    curs.execute('''select pid, name, minHours, pay, location from project
+                    where name like %s''', ['%'+ search + '%'])
+    return curs.fetchall()
+    
 #adds a new user
 def addUser(conn,email,password):
     curs=conn.cursor()

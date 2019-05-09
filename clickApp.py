@@ -188,6 +188,18 @@ def studentUpdate(email):
         else:
             return redirect(url_for('studentProfile',
                             email = studentInfo['email']))
+                            
+@app.route("/jobs", methods = ['GET', 'POST'])
+def jobs():
+    conn = clickDatabase.getConn('clickdb')
+    if request.method == 'GET':
+        jobs = clickDatabase.getJobs(conn)
+        return render_template('jobs.html', jobs = jobs)
+    else:
+        if request.form['submit'] == 'Search':
+            search = request.form.get('searchJobs')
+            filteredJobs = clickDatabase.searchJobs(conn, search)
+            return render_template('jobs.html', jobs = filteredJobs)
 
 #route to page that allows job poster to see his/her current postings     
 @app.route("/posting/<pid>", methods = ['GET', 'POST'])
