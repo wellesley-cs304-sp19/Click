@@ -3,15 +3,10 @@
 
 import sys
 import MySQLdb
-
-'''our clickdb connection'''
-def getConn(db):
-    conn = MySQLdb.connect(host='localhost',
-                           user='ubuntu',
-                           passwd='',
-                           db=db)
-    conn.autocommit(True)
-    return conn
+import threading
+from connection import getConn
+from threading import lock
+import re
 
 #gets student's profile from database
 def getStudent(conn, email):
@@ -50,13 +45,21 @@ def addSkill(conn, email, skill):
     nr = curs.execute('''insert into hasSkill(email, sid) values (%s, %s)''', [email, skillNum.values()[0]])
     return nr
 
+########################GAB'S Functions
 #adds a new user
 def addUser(conn,email,password):
     curs=conn.cursor()
     newrow=curs.execute('''insert into user(email,password) values (%s,%s)''',[email,password])
     return newrow
 
-#put rest of our functions here
+#add a new job posting
+def addProject(conn,project_dict):
+    curs = conn.cursor()
+    curs.execute('''insert into project (name,minHours,pay,location) values (%s,%s,%s,%s);''',[project_dict['name'],project_dict['minHours'],project_dict['pay'],project_dict['location']])
+    curs.execute('''select last_insert_id();''')
+    result=curs.fetchall()
+    return(result[0][0])
+
 
    
 if __name__ == '__main__':

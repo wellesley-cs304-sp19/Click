@@ -2,11 +2,13 @@
 #Dana, Erica, and Gabby
 
 from flask import (Flask, url_for, render_template, request, redirect, flash,session)
+from datetime import date
 import random,math
 import MySQLdb
 import sys
 import bcrypt
 import clickDatabase
+from connection import getConn
 from functools import wraps
 import os
 
@@ -17,17 +19,12 @@ app.secret_key = ''.join([ random.choice(('ABCDEFGHIJKLMNOPQRSTUVXYZ' +
                                           '0123456789'))
                            for i in range(20) ])
                            
-conn = clickDatabase.getConn('clickdb')
 
 #route to the home page
 @app.route("/")
 def home():
     return render_template('home.html')
     
-def getConn(db):
-    conn = MySQLdb.connect(user='ubuntu',host='localhost',password='',db=db)
-    conn.autocommit(True)
-    return conn
     
 '''Since in the future, we want to have a user visiting
     a site to be redirected to the login page if they are
@@ -45,14 +42,15 @@ def login_required(f):
             return redirect(url_for('login'))
     return decorated_fcn()
 
+    
 #route to the login page
 @app.route('/login/',methods=['GET','POST'])
 def login():
     #the code below works well
-    #return render_template('login.html')
-    
-    #somehow the code below gives Bad Request: The browser (or proxy) sent a request that this server could not understand.
-    try:
+    if request.method=='GET':
+        return render_template('login.html')
+    else:
+        print("test enter")
         username=request.form['username']
         password=request.form['password']
         conn=getConn('clickdb')
@@ -60,25 +58,35 @@ def login():
         curs.execute('select password from user where email=%s',[username])
         row=curs.fetchone()
         if row is None:
+            print("test enter1")
             flash('Login failed. Please register or try again')
             return redirect(url_for('home'))
         hashed=row['password']
-        if bcrypt.hashpw(password.encode('utf-8'),hashed.encode('utf-8'))==hashed:
+        if (bcrypt.hashpw(password.encode('utf-8'),hashed.encode('utf-8'))==hashed.encode('utf-8')):
+            print("test enter2")
             flash('Successfully logged in as'+username)
             session['username']=username
             session['logged_in']= True
             return redirect(url_for('home'))
         else:
+            print("test enter3")
             flash('Login failed. Please register or try again')
             return redirect(url_for('login'))
-    except Exception as err:
-        flash('From submission error'+str(err))
-        return redirect(url_for('home'))
-        
+        #except Exception as err:
+            #flash('From submission error'+str(err))
+            #return render_template('login.html')
+            #return redirect(url_for('home'))
+
+@app.route('/loginPage/',methods=["POST"])  
+def redirectToLogin():
+    '''renders login.html where user can login or register'''
+    return render_template('login.html')        
         
 #route to the register page
-@app.route('/register/')
+@app.route('/register/', methods=["POST"])
 def register():
+    '''allows user to register by creating a username and password;
+    if username is unique, encrypts passwords and store it'''
     try:
         username=request.form['username']
         password1=request.form['password1']
@@ -88,7 +96,7 @@ def register():
             return redirect(url_for('login'))
         hashed=bcrypt.hashpw(password1.encode('utf-8'),bcrypt.gensalt())
         #hashed=password1
-        conn=getConn('clickdb')
+        conn=getConn()
         curs=conn.cursor(MySQLdb.cursors.DictCursor)
         curs.execute('select email from user where email=%s',[username])
         row=curs.fetchone()
@@ -107,6 +115,7 @@ def register():
 #route to logout
 @app.route('/logout/')
 def logout():
+    '''logging out the current user'''
     try:
         if 'username' in session:
             username = session['username']
@@ -127,6 +136,17 @@ def logout():
 def studentPage(email):
     return render_template('student.html',
                             email=email)
+                            
+@app.route('/reset/', methods=['GET', 'POST'])
+def reset():
+    '''clears all filters and sorting and displays original tables'''
+    resetType = request.form.get("submit-reset")
+    #in students.html, reset students; return master list of students
+    if (resetType == "Reset Students"):
+        return redirect('students')
+    #in project.html, reset projects; return master list of projects
+    else: 
+        return redirect('projects')
 
 #route to page that allows student to view profile and add skills    
 @app.route("/studentProfile/<email>", methods = ['GET', 'POST'])

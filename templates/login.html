@@ -1,12 +1,20 @@
+{% extends "home.html" %}
 <head>
     <meta charset = 'utf-8'>
     <meta name= author content= "Gabby Liu"
-    <title>Login</title>
-    <link type="text/css" rel="stylesheet" href= "{{url_for('static', filename ='style.css')}}">
+    <title>Login Page</title>
+    {% block head %}
+    {{ super() }}
+    {% endblock %}
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 </head>
 
 <h1>Login/Register</h1> 
+
+{% for msg in get_flashed_messages() %}
+    <class="error"> {{msg}} </class>
+    <br>
+{% endfor %}
 
 <p>Please login or register, using one of the forms below:</p>
 

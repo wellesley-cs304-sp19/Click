@@ -1,0 +1,82 @@
+{% extends "base.html" %} 
+
+{% block title %} 
+    <h1>Project Submission Form</h1> 
+{% endblock %}
+
+{% block content %}
+
+<form method="POST" action="" >
+    
+    <h2> Projects: </h2>
+    <section class="columns">
+        <div class="left">
+            <h4> Select Project to Apply: </h4>
+            <table id='existing-project-table'>
+            <tr>
+                <td>
+                    <select id="existing-project" name="existing-project">
+                        <option value='create-new-project'> Select... </option>
+                        {% for dict in project_list %}
+                            <option data-units="{{dict.units}}" data-category="{{dict.category}}" value="{{dict.description}}"> {{dict.description}} </option>
+                        {% endfor %}
+                    </select> 
+                </td>
+                <td>
+                    <button type="button" id="existing-project-button">Select</button>
+                </td>
+            </tr>
+            <tr>
+                    <td> Hours Committed Per Week: </td>
+                    <td> <input type="number" min=0 name="left-amount"> </td>
+            </tr>
+            <tr>
+                    <td> Pay Wanted: </td>
+                    <td> <input type="number" min=0 name="left-amount"> </td>
+            </tr>
+            </table>
+        </div>
+        
+        <div class="right">
+            <h4> Create New Project: </h4>
+            <table id='create-project-table'>
+                <tr>
+                    <td> Project Description: </td>
+                    <td> <input type="text" name="project-description"> </td>
+                </tr>
+                <!-- hour/week -->
+                <tr>
+                    <td> Hours Needed Per Week: </td>
+                    <td> <input type="number" min=0 name="amount"> </td>
+                </tr>
+                <!-- total # weeks -->
+                <tr>
+                    <td> Tentative Pay: </td>
+                    <td> <input type="number" min=0 name="amount"> </td>
+                </tr>
+                <!-- dropdown: project type, ie remote or local-->
+                <tr>
+                    <td> Select Project Type: </td>
+                    <td>
+                       <select required name="project-type">
+                            <option value="local"> Local </option>
+                            <option value="remote"> Remote </option>
+                        </select> 
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </section>
+
+            
+            
+        <br>
+        <input type="submit" class="center-submit" value="Submit Donation"></p>
+</form>
+    
+{% endblock %}
+
+{% block scripts %}
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="{{url_for('static', filename='donation_page.js')}}"></script>
+{% endblock %}
