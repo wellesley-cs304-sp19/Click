@@ -1,0 +1,41 @@
+<!--CS 304 Project
+Dana 
+Page that lists all available job postings-->
+{% extends "home.html" %}
+
+{%block content %}
+
+<h1>Available Jobs</h1>
+
+<form method="POST" action="">
+    <p>
+    <label for="searchJobs">Search:</label>
+    <input id="searchJobs" name="searchJobs" type="text" >
+    <input class="submit" name="submit" type="submit" value="Search">
+    </p>
+    
+</form>
+
+<table id="jobsList">
+    <tr>
+        <th>Name</th>
+        <th>Hours</th>
+        <th>Pay</th>
+        <th>Location</th>
+    </tr>
+    {% for job in jobs %}
+        <tr name={{job.pid}}>
+        <td class="name">{{job.name}}</td>
+        <td class="minHours">{{job.minHours}}</td>
+        <td class="pay">{{job.pay}}</td>
+        <td class="location">{{job.location}}</td>
+        <!-- <td><form method="post" action="{{url_for('jobs')}}">
+            <input type="submit" id="applyButton" value="Apply">
+            </form>
+        </td> -->
+    </tr>            
+    {% endfor %}       
+   </table>                 
+
+
+{% endblock %}

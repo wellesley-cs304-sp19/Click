@@ -3,26 +3,23 @@ Dana -->
 {% extends "home.html" %}
 
 {%block content %}
-        
+    
 <h1>Your Profile</h1>
+
+<h3>Personal Information</h3>
 
 <p>Name: {{name}}</p>
 
 <p>Email: {{email}}</p>
+
+<p>Actively seeking employment: {{active}}</p>
  
- <!--list skills, each with a remove button -->      
-<form method="post" action="">
-    {% for skill in skills %}
-         <p>
-          <label for="skill"}>{{skill.skill}}</label>
-          <input id="skill" name="skill" type="text" value="{{skill.skill}}">
-          <input id="skill" class="submit" name="submit" type="submit" value="Remove"></p>
-    {% endfor %}
-    
-    <p>
-        <input id="newSkill" name="newSkill" type="text">
-        <input class="submit" name="submit" type="submit" value="Add skill">
-    </p>
-</form>
+<h3>Skills</h3>
+ <!--list skills-->      
+{% for skill in skills %}
+    <p>{{skill.skill}}</p>
+{% endfor %}
+
+<p><a href="{{url_for('studentUpdate', email=email)}}">Update profile</a></p>
 
 {% endblock %}

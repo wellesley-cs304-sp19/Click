@@ -11,17 +11,13 @@
 
 <h1>Login/Register</h1> 
 
-{% for msg in get_flashed_messages() %}
-    <class="error"> {{msg}} </class>
-    <br>
-{% endfor %}
 
 <p>Please login or register, using one of the forms below:</p>
 
     <form id="loginform" action="{{url_for('login')}}" method="post">
         <h2 align="center">Login</h2>
         <!--the pattern part in the code below ensures that the input needs to be something@something.domain-->
-        <p><label>Username: <input type="text" name="username" required pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"></label></p>
+        <p><label>Username: <input type="text" name="username" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"></label></p>
         <p><label>Password: <input type="password" name="password" required></label></p>
         <p><button type="submit">Submit</button></p>
     </form>
@@ -33,6 +29,11 @@
         <p><label> Confirm Password: <input type="password" name="password2" required></label></p>
         <p><button type="submit">Submit</button></p>
     </form>
+    
+
+</body>
+</html>
+
 
 <script>
 /*global $*/

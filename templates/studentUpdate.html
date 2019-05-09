@@ -1,0 +1,60 @@
+<!--CS 304 Project
+Dana -->
+{% extends "home.html" %}
+
+{%block content %}
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div id="messages">
+            {% for msg in messages %}
+                <p>{{msg}}</p>
+            {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    
+<h1>Update Your Profile</h1>
+<h3>Update Your Personal Information</h3>
+<form method="POST" action="">
+        <p>
+          <label for="studentName">Name:</label>
+          <input id="studentName" name="studentName" type="text" value="{{name}}">
+        </p>
+        <p>
+          Email: {{email}}
+        </p>
+        <p>
+          <label for="studentActive">Actively seeking employment:</label>
+          <select id="studentActive" name="studentActive">
+              <option>yes</option>
+              <option>no</option>
+          </select>
+        </p>
+        <p><input class="submit" name="submit" type="submit" value="Update Personal Information"></p>
+</form>
+ 
+ <h3>Update Your Skills</h3>
+ <!--list skills, each with a remove button -->    
+{% for skill in skills %}
+    <form method="post" action="">
+         <p>
+          <label for="skill"}>{{skill.skill}}</label>
+          <input id="skill" name="skill" type="text" value="{{skill.skill}}">
+          <input id="skill" class="submit" name="submit" type="submit" value="Remove"></p>
+    </form>
+{% endfor %}
+    
+    <form method="post" action="">
+        <p>
+            <input id="newSkill" name="newSkill" type="text">
+            <input class="submit" name="submit" type="submit" value="Add skill">
+        </p>
+    </form>
+    
+    <form method="post" action="">
+        <p>
+            <input class="submit" name="submit" type="submit" value="Update Profile">
+        </p>
+    </form>
+
+{% endblock %}
