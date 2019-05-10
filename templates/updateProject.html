@@ -1,0 +1,52 @@
+<!--Erica Ma -->
+
+{% extends "jobPoster.html" %}
+
+
+{% block title %} Update {% endblock %}
+
+{% block content %}
+
+<div id="content">
+
+        <div id="flashes">
+        </div>
+  <h1>Update Project</h1>
+
+  <p>Use "None" or "null" to set a field to null. Only Name, Pay and 
+  Minimum Hours can be null.
+
+    </p><form method="POST">
+      <table>
+        <tbody><tr>
+          <td><label for="project-name">Project Name</label></td>
+          <td><input name="project-name" id = "project-name" value="{{name}}">
+          </td> 
+        </tr>
+        <tr>
+          <td><label for="project-name">Project id</label></td>
+          <td><input name="project-pid" id = "project-pid" value="{{pid}}"></td>
+        </tr>
+        <tr>
+          <td><label for="project-pay">Pay</label></td>
+          <td><input name="project-pay" id = "project-pay" value="{{pay}}">
+          </td>
+        </tr>
+        <tr>
+          <td><label for="project-minHours">Minimum Hours</label></td>
+          <td><input name="project-minHours" id = "project-minHours" value="{{minHours}}">
+          </td>
+        </tr>
+        <tr>
+          <td><label for="project-location">Location</label></td>
+          <td><input name="project-location" id = "project-location" value="{{location}}">
+          </td>
+        </tr>
+      </tbody></table>
+      <input type="submit" name="submit" value="update">
+      <input type="submit" name="submit" value="delete">
+    </form>
+
+    </div>
+    
+{% endblock %}

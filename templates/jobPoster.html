@@ -1,0 +1,43 @@
+<!--Erica -->
+<html>
+    
+    <head>
+        <html lang="en">
+        <link rel="stylesheet" href="../static/style.css">
+        <link rel="shortcut icon" href="your_image_path_and_name.ico" />
+        <title>
+        {% block title %}
+        Home
+        {% endblock %}
+        </title>
+        
+    </head>
+    
+    <body>
+
+        <h1>Job Poster Page</h1>
+            <p> Welcome to Click! </p>
+            <p>You can <a href="/selectProject/">check your current postings</a>, 
+            <a href="/insertProject/">create a new project posting</a>, or 
+            <a href="/searchStudent/">search potential student candidates</a>.</p>
+            
+
+ {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <div id="messages">
+        {% for msg in messages %}
+            <p>{{msg}}</p>
+        {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %} 
+
+
+        
+        {% block content %}
+        <div id="content">
+        </div>
+        {% endblock %}
+        
+    </body>
+</html>
