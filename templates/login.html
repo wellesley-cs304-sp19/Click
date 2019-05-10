@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 <html>
 =======
 >>>>>>> 61191da32f7f52508101364fc5eef7b17dd0c35a
@@ -7,11 +8,22 @@
     <meta name= author content= "Gabby Liu"
     <title>Login</title>
     <link type="text/css" rel="stylesheet" href= "{{url_for('static', filename ='style.css')}}">
+=======
+{% extends "home.html" %}
+<head>
+    <meta charset = 'utf-8'>
+    <meta name= author content= "Gabby Liu"
+    <title>Login Page</title>
+    {% block head %}
+    {{ super() }}
+    {% endblock %}
+>>>>>>> origin/master
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 </head>
 
 <h1>Login/Register</h1> 
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 
 {% for msg in get_flashed_messages() %}
@@ -22,16 +34,23 @@
 
 =======
 >>>>>>> 61191da32f7f52508101364fc5eef7b17dd0c35a
+=======
+
+>>>>>>> origin/master
 <p>Please login or register, using one of the forms below:</p>
 
     <form id="loginform" action="{{url_for('login')}}" method="post">
         <h2 align="center">Login</h2>
         <!--the pattern part in the code below ensures that the input needs to be something@something.domain-->
 <<<<<<< HEAD
+<<<<<<< HEAD
         <p><label>Username: <input type="text" name="username" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"></label></p>
 =======
         <p><label>Username: <input type="text" name="username" required pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"></label></p>
 >>>>>>> 61191da32f7f52508101364fc5eef7b17dd0c35a
+=======
+        <p><label>Username: <input type="text" name="username" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"></label></p>
+>>>>>>> origin/master
         <p><label>Password: <input type="password" name="password" required></label></p>
         <p><button type="submit">Submit</button></p>
     </form>
@@ -44,13 +63,19 @@
         <p><button type="submit">Submit</button></p>
     </form>
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> origin/master
     
 
 </body>
 </html>
 
+<<<<<<< HEAD
 =======
 >>>>>>> 61191da32f7f52508101364fc5eef7b17dd0c35a
+=======
+>>>>>>> origin/master
 
 <script>
 /*global $*/

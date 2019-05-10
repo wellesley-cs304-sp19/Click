@@ -3,6 +3,7 @@ Dana -->
 {% extends "home.html" %}
 
 {%block content %}
+<<<<<<< HEAD
         
 <h1>Your Profile</h1>
 
@@ -24,5 +25,25 @@ Dana -->
         <input class="submit" name="submit" type="submit" value="Add skill">
     </p>
 </form>
+=======
+    
+<h1>Your Profile</h1>
+
+<h3>Personal Information</h3>
+
+<p>Name: {{name}}</p>
+
+<p>Email: {{email}}</p>
+
+<p>Actively seeking employment: {{active}}</p>
+ 
+<h3>Skills</h3>
+ <!--list skills-->      
+{% for skill in skills %}
+    <p>{{skill.skill}}</p>
+{% endfor %}
+
+<p><a href="{{url_for('studentUpdate', email=email)}}">Update profile</a></p>
+>>>>>>> origin/master
 
 {% endblock %}
