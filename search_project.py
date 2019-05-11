@@ -31,7 +31,7 @@ def sortProjectByLocation(conn):
     curs.execute('''select name,minHours,pay,location from project order by location''')
     return curs.fetchall()
     
-def getProjectLocation(conn,location):
+def getProjectByLocation(conn,location):
     """Returns all projects of a specific location"""
     curs = conn.cursor(MySQLdb.cursors.DictCursor)
     curs.execute('''select name,minHours,pay,location from project where location = %s''',[location])

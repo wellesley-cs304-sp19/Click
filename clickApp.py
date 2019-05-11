@@ -14,6 +14,7 @@ from functools import wraps
 import os
 
 app = Flask(__name__)
+app.url_map.strict_slashes = False
 
 app.secret_key = ''.join([ random.choice(('ABCDEFGHIJKLMNOPQRSTUVXYZ' +
                                           'abcdefghijklmnopqrstuvxyz' +
@@ -41,51 +42,42 @@ def login_required(f):
     return decorated_fcn()
 
 #route to the login page
-@app.route('/login/',methods=['POST'])
+@app.route('/login/',methods=['GET','POST'])
 def login():
     #the code below works well
-    '''if request.method=='GET':
-=======
-<<<<<<< HEAD
-    #return render_template('login.html')
-    
-    #somehow the code below gives Bad Request: The browser (or proxy) sent a request that this server could not understand.
-    try:
-=======
     if request.method=='GET':
->>>>>>> 667fcb65abf1fd6db4f8400e8f6d928f2b0fb71d
         return render_template('login.html')
-    else:'''
-    try:
-        print("test enter")
-        username=request.form['username']
-        password=request.form['password']
-        conn=getConn()
-        curs=conn.cursor(MySQLdb.cursors.DictCursor)
-        curs.execute('select hashed from user where email=%s',[username])
-        row=curs.fetchone()
-        if row is None:
-            flash('Login failed. Please register or try again')
+    else:
+        try:
+            print("test enter")
+            username=request.form['username']
+            password=request.form['password']
+            conn=getConn()
+            curs=conn.cursor(MySQLdb.cursors.DictCursor)
+            curs.execute('select hashed from user where email=%s',[username])
+            row=curs.fetchone()
+            if row is None:
+                flash('Login failed. Please register or try again')
+                return redirect(url_for('home'))
+            hashed=row['password']
+            if bcrypt.hashpw(password.encode('utf-8'),hashed.encode('utf-8'))==hashed:
+                print("test enter1")
+                flash('Login failed. Please register or try again')
+                return redirect(url_for('home'))
+            hashed=row['password']
+            if (bcrypt.hashpw(password.encode('utf-8'),hashed.encode('utf-8'))==hashed.encode('utf-8')):
+                print("test enter2")
+                flash('Successfully logged in as'+username)
+                session['username']=username
+                session['logged_in']= True
+                return redirect(url_for('home'))
+            else:
+                flash('Login failed. Please register or try again')
+                return redirect(url_for('login'))
+        except Exception as err:
+            flash('From submission error'+str(err))
             return redirect(url_for('home'))
-        hashed=row['password']
-        if bcrypt.hashpw(password.encode('utf-8'),hashed.encode('utf-8'))==hashed:
-            print("test enter1")
-            flash('Login failed. Please register or try again')
-            return redirect(url_for('home'))
-        hashed=row['password']
-        if (bcrypt.hashpw(password.encode('utf-8'),hashed.encode('utf-8'))==hashed.encode('utf-8')):
-            print("test enter2")
-            flash('Successfully logged in as'+username)
-            session['username']=username
-            session['logged_in']= True
-            return redirect(url_for('home'))
-        else:
-            flash('Login failed. Please register or try again')
-            return redirect(url_for('login'))
-    except Exception as err:
-        flash('From submission error'+str(err))
-        return redirect(url_for('home'))
-        
+            
 
 @app.route('/loginPage/',methods=["POST"])  
 def redirectToLogin():
@@ -166,6 +158,7 @@ def jobPosterPage(email):
     return render_template('jobPoster.html',
                             email=email)                           
 
+'''
 #route to page that allows student to view profile and add skills    
 @app.route("/studentProfile/<email>", methods = ['GET', 'POST'])
 #@login_required
@@ -210,13 +203,7 @@ def project(pid):
 @app.route('/insertProject/')
 def insertProject():
     return render_template('insertProject.html')
-
-# insert page form handling 
-@app.route('/insertProject/', methods=['GET','POST'])
-def submit_insertProject():
-'''Route to page that allows student to view profile and add skills.
-   The student profile is for the student that is currently logged in.
-'''
+    
 @app.route("/studentProfile/<email>", methods = ['GET'])
 #@login_required
 def studentProfile(email):
@@ -229,8 +216,10 @@ def studentProfile(email):
                         email = studentInfo['email'],
                         active = studentInfo['active'],
                         skills = skills)
+'''
  
-'''Route to page to update student profile'''                             
+'''Route to page to update student profile'''
+'''
 @app.route("/studentUpdate/<email>", methods = ['GET', 'POST'])
 def studentUpdate(email):
     conn = clickDatabase.getConn('clickdb')
@@ -275,7 +264,8 @@ def studentUpdate(email):
         else:
             return redirect(url_for('studentProfile',
                             email = studentInfo['email']))
-                            
+'''
+
 @app.route("/jobs", methods = ['GET', 'POST'])
 def jobs():
     conn = getConn()
@@ -287,6 +277,44 @@ def jobs():
             search = request.form.get('searchJobs')
             filteredJobs = clickDatabase.searchJobs(conn, search)
             return render_template('jobs.html', jobs = filteredJobs)
+            
+@app.route("/filterProjects/sortBy", methods = ['GET', 'POST'])
+def filterProjects():
+    '''Routes that deal with sorting and filtering project'''
+    conn=getConn()
+    dropdown=request.form.get("menu-tt")
+    checkbox=request.form.get("type")
+    projectByLocation=search_project.getProjectByLocation(conn,checkbox)
+    allProjects=search_project.getAllProjects(conn)
+    
+    #when no dropdown is selected
+    if dropdown =="none":
+        #when checkbox is also not selected
+        if checkbox is None:
+            return render_template('project.html',allProjects=allProjects)
+        #when checkbox is selected
+        else:
+            #there is no project of the selected location
+            if(len(projectByLocation)==0):
+                flash("There are no projects in the chosen location: "+ checkbox)
+            return render_template('project.html',allProjects=projectByLocation)
+    #dropdown is selected
+    else:
+        #check box not selected
+        if checkbox is None:
+            if(dropdown=="Min Hours Ascending"):
+                sortedProjects=search_project.sortProectByMinHoursAscending(conn)
+                return render_template('project.html',allProjects=sortedProjects)
+            elif(dropdown=="Pay Descending"):
+                sortedProjects=search_project.sortProectByPayDescending(conn)
+                return render_template('project.html',allProjects=sortedProjects)
+            elif(dropdown=="Alphabetical By Location"):
+                sortedProjects=search_project.sortProjectByLocation(conn)
+                return render_template('project.html',allProjects=sortedProjects)
+        #both dropdown and checkbox selected
+        else:
+            multiFilter=search_project.multipleFilters(conn,checkbox,dropdown)
+            return render_template('project.html',allProjects=multiFilter)
 
 #route to page that allows job poster to see his/her current postings     
 @app.route("/posting/<pid>", methods = ['GET', 'POST'])
@@ -355,10 +383,11 @@ def submit_insertPosting():
                 flash("Project already exists")
             return redirect(url_for('updateProject', pid = request.form['project-pid']))
 
+'''
 # setting up page with projects
 @app.route('/selectProject/')
 def selectProject():
-    conn = clickDatabase.getConn('clickdb')
+    conn = getConn()
     allProjects = clickDatabase.find_allProjects(conn)
     return render_template('selectProject.html', allProjects=allProjects)
         if (clickDatabase.search_posting_pid(conn, request.form['posting-pid'])) != None:
@@ -401,6 +430,7 @@ def selectProject():
             else:
                 flash("Posting already exists")
             return redirect(url_for('updatePosting', pid = request.form['movie-posting']))
+'''
 
 # setting up page with postings
 @app.route('/selectPosting/')
