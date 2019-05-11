@@ -12,6 +12,12 @@ values
 ("interesting",10, 13.5,'local'),
 ("boring",15,20.0,'local'),
 ("tough",8,16.8,'remote');
+<<<<<<< HEAD
+("a",10, 13.5,'local'),
+("b",15,20.0,'local'),
+("c",8,16.8,'remote');
+=======
+>>>>>>> origin/master
 
 insert into skills(skill) 
 values 

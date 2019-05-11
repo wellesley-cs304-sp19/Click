@@ -1,0 +1,972 @@
+#CS304 Project
+#Dana, Erica, and Gabby
+
+from flask import (Flask, url_for, render_template, request, redirect, flash,session)
+import random,math
+import MySQLdb
+import sys
+import bcrypt
+import clickDatabase
+from functools import wraps
+import os
+
+app = Flask(__name__)
+
+app.secret_key = ''.join([ random.choice(('ABCDEFGHIJKLMNOPQRSTUVXYZ' +
+                                          'abcdefghijklmnopqrstuvxyz' +
+                                          '0123456789'))
+                           for i in range(20) ])
+                           
+conn = clickDatabase.getConn('clickdb')
+
+#route to the home page
+@app.route("/")
+def home():
+    return render_template('home.html')
+    
+'''Since in the future, we want to have a user visiting
+    a site to be redirected to the login page if they are
+    not already logged in. We use a decorator to solve 
+    this problem. 
+'''
+#method learned from flask.pocoo.org
+def login_required(f):
+    @wraps(f)
+    def decorated_fcn():
+        if 'logged_in' in session:
+            return f()
+        else:
+            flash('You need to login first')
+            return redirect(url_for('login'))
+    return decorated_fcn()
+
+#route to the login page
+@app.route('/login/',methods=['GET','POST'])
+def login():
+    #the code below works well
+    #return render_template('login.html')
+    
+    #somehow the code below gives Bad Request: The browser (or proxy) sent a request that this server could not understand.
+    try:
+        username=request.form['username']
+        password=request.form['password']
+        conn=clickDatabase.getConn('clickdb')
+        curs=conn.cursor(MySQLdb.cursors.DictCursor)
+        curs.execute('select password from user where email=%s',[username])
+        row=curs.fetchone()
+        if row is None:
+            flash('Login failed. Please register or try again')
+            return redirect(url_for('home'))
+        hashed=row['password']
+        if bcrypt.hashpw(password.encode('utf-8'),hashed.encode('utf-8'))==hashed:
+            flash('Successfully logged in as'+username)
+            session['username']=username
+            session['logged_in']= True
+            return redirect(url_for('home'))
+        else:
+            flash('Login failed. Please register or try again')
+            return redirect(url_for('login'))
+    except Exception as err:
+        flash('From submission error'+str(err))
+        return redirect(url_for('home'))
+        
+        
+#route to the register page
+@app.route('/register/')
+def register():
+    try:
+        username=request.form['username']
+        password1=request.form['password1']
+        password2=request.form['password2']
+        if password1 != password2:
+            flash('Passwords do not match.')
+            return redirect(url_for('login'))
+        hashed=bcrypt.hashpw(password1.encode('utf-8'),bcrypt.gensalt())
+        #hashed=password1
+        conn=clickDatabase.getConn('clickdb')
+        curs=conn.cursor(MySQLdb.cursors.DictCursor)
+        curs.execute('select email from user where email=%s',[username])
+        row=curs.fetchone()
+        if row is not None:
+            flash('This email has already been used')
+            return redirect(url_for('login'))
+        curs.execute('insert into user(email,password) values (%s,%s)',[username,hashed])
+        session['username']=username
+        session['logged_in']=True
+        flash('Successfully logged in as'+username)
+        return redirect(url_for('login'))
+    except Exception as err:
+        flash('From submission error'+str(err))
+        return redirect(url_for('index'))
+
+#route to logout
+@app.route('/logout/')
+def logout():
+    try:
+        if 'username' in session:
+            username = session['username']
+            session.pop('username')
+            session.pop('logged_in')
+            flash('You are logged out')
+            return redirect(url_for('home'))
+        else:
+            flash('You are not logged in. Please login or register')
+            return redirect( url_for('home') )
+    except Exception as err:
+        flash('Error Message: '+str(err))
+        return redirect( url_for('home') )
+        
+#route to page that student sees when first log in
+@app.route("/student/<email>")
+#@login_required
+def studentPage(email):
+    return render_template('student.html',
+                            email=email)
+
+#route to page that job poster sees when first log in
+@app.route("/jobPoster/<email>")
+def jobPosterPage(email):
+    return render_template('jobPoster.html',
+                            email=email)                           
+
+#route to page that allows student to view profile and add skills    
+@app.route("/studentProfile/<email>", methods = ['GET', 'POST'])
+#@login_required
+def studentProfile(email):
+    studentInfo = clickDatabase.getStudent(conn, email)
+    skills = clickDatabase.studentSkills(conn, email)
+    #if GET, renders page with all information about student in database
+    if request.method == 'GET':
+        return render_template('studentProfile.html',
+                            name = studentInfo['name'],
+                            email = studentInfo['email'],
+                            skills = skills)
+    #if POST, either adding or removing a skill
+    else:
+        #removing skill
+        if request.form['submit'] == 'Remove':
+            skill = request.form.get('skill')
+            clickDatabase.removeSkill(conn, email, skill)
+            return redirect(url_for('studentProfile',
+                            email = studentInfo['email']))
+        #adding skill
+        else:
+            newSkill = request.form.get('newSkill')
+            clickDatabase.addSkill(conn, email, newSkill)
+            return redirect(url_for('studentProfile',
+                            email = studentInfo['email']))
+
+#route to page that allows job poster to see his/her current postings     
+@app.route("/posting/<pid>", methods = ['GET', 'POST'])
+def posting(pid):
+    #if GET, renders page with all information about that posting in database
+    if request.method == 'GET':
+        postingInfo = clickDatabase.getPosting(conn, pid)
+        return render_template('posting.html',
+                            name = postingInfo['name'],
+                            minHours = postingInfo['minHours'],
+                            pay = postingInfo['pay'],
+                            location = postingInfo['location'],
+                            )
+
+# insert page
+@app.route('/insertPosting/')
+def insertPosting():
+    return render_template('insertPosting.html')
+
+# insert page form handling 
+@app.route('/insertPosting/', methods=['GET','POST'])
+def submit_insertPosting():
+    conn = clickDatabase.getConn('clickdb')
+    if request.method == 'POST':
+    
+        # checking database to see if the given pid is in use 
+        if (clickDatabase.search_posting_pid(conn, request.form['posting-pid'])) != None:
+            flash('bad input: project\'s pid already in use.')
+            return render_template('insertPosting.html')
+        
+        # checking if info is missing in input 
+        if ((request.form['posting-pid'] == "") or (request.form['posting-name'] == "") 
+        or (request.form['posting-pay'] == "") or (request.form['posting-minHours'] == "")
+        or (request.form['posting-location'] == "")):
+            if request.form['posting-pid'] == "":
+                flash('missing input: project\'s pid is missing.')
+                
+        
+            if request.form['posting-name'] == "":
+                flash('missing input: name is missing.')
+               
+            if request.form['posting-pay'] == "": 
+                flash('missing input: pay is missing.')
+                
+            if request.form['posting-minHours'] == "": 
+                flash('missing input: minimum hours is missing.')
+                
+            if request.form['posting-location'] == "": 
+                flash('missing input: location is missing.')
+                
+            return render_template('insertPosting.html')
+            
+        if ((request.form['posting-pid'] == "") and (request.form['posting-name'] == "") 
+        and (request.form['posting-pay'] == "") and (request.form['posting-minHours'] == "")
+        and (request.form['posting-location'] == "")):
+            
+            postingInfo = clickDatabase.search_posting_pid(conn, request.form['posting-pid'])
+            if postingInfo == None: 
+                clickDatabase.insert_posting(conn, request.form['posting-pid'], 
+                request.form['posting-name'], request.form['posting-pay'],
+                request.form['posting-minHours'], request.form['posting-location'])
+                flash('Posting {name} was created successfully'.format(title=request.form['posting-name']))
+
+            else:
+                flash("Posting already exists")
+            return redirect(url_for('updatePosting', pid = request.form['movie-posting']))
+
+# setting up page with postings
+@app.route('/selectPosting/')
+def selectPosting():
+    conn = clickDatabase.getConn('clickdb')
+    allPostings = clickDatabase.find_allPostings(conn)
+    return render_template('selectPosting.html', allPostings=allPostings)
+    
+# returns true when a SQL query's result is not empty
+def isValid(results):
+    return results != None
+    
+# select page form handling
+@app.route('/selectPosting/', methods=['GET','POST'])
+def select_posting():
+    conn = clickDatabase.getConn('clickdb')
+    pid = request.form.get('select-name') ###????
+    if isValid(pid):
+        return redirect(url_for('updatePosting', pid=pid))
+    else: 
+        flash('Please select a project posting')
+        return render_template('selectPosting.html')
+        
+# search page
+@app.route('/searchStudent/')
+def searchStudent():
+    return render_template('searchStudent.html')
+    
+# search page with form request handling   
+@app.route('/searchStudent/', methods=['GET','POST'])
+def search_student():
+    name = request.form.get('search-name')
+    conn = clickDatabase.getConn('clickdb')
+    email = clickDatabase.get_email(conn, name)
+    if isValid(email):
+        return redirect(url_for('updatePosting', email=email))
+    else: 
+        flash('Requested student does not exist')
+        return render_template('searchStudent.html')
+
+if __name__ == '__main__':
+    app.debug = True
+    app.run('0.0.0.0',8080)
+#CS304 Project
+#Dana, Erica, and Gabby
+
+import sys
+import MySQLdb
+
+'''our clickdb connection'''
+def getConn(db):
+    conn = MySQLdb.connect(host='localhost',
+                           user='ubuntu',
+                           passwd='',
+                           db=db)
+    conn.autocommit(True)
+    return conn
+
+#gets student's profile from database
+def getStudent(conn, email):
+    curs = conn.cursor(MySQLdb.cursors.DictCursor)
+    curs.execute('''Select * from user where email = %s''', [email])
+    return curs.fetchone()
+
+#get all student's skills from database    
+def studentSkills(conn, email):
+    curs = conn.cursor(MySQLdb.cursors.DictCursor)
+    #use inner join to get list of skills
+    curs.execute('''select skill from skills inner join hasSkill using (sid)
+    where hasSkill.email = %s''', [email])
+    return curs.fetchall()
+    
+#removes skill from student  
+def removeSkill(conn, email, skill):
+    curs = conn.cursor(MySQLdb.cursors.DictCursor)
+    curs.execute('''Select sid from skills where skill = %s''', [skill])
+    skillNum = curs.fetchone().values()[0]
+    nr = curs.execute('''delete from hasSkill where sid = %s and email = %s''', [skillNum, email])
+    return nr
+
+#adds skill to student    
+def addSkill(conn, email, skill):
+    curs = conn.cursor(MySQLdb.cursors.DictCursor)
+
+    curs.execute('''Select sid from skills where skill = %s''', [skill])
+    skillNum = curs.fetchone()
+    #if skill not in skills table, add it
+    if skillNum == None:
+        curs.execute('''insert into skills(skill) values (%s)''', [skill])
+        curs.execute('''Select sid from skills where skill = %s''', [skill])
+        skillNum = curs.fetchone()
+    #continue with inserting email and skill into hasSkill table
+    nr = curs.execute('''insert into hasSkill(email, sid) values (%s, %s)''', [email, skillNum.values()[0]])
+    return nr
+    
+#adds a new user
+def addUser(conn,email,password):
+    curs=conn.cursor()
+    newrow=curs.execute('''insert into user(email,password) values (%s,%s)''',[email,password])
+    return newrow
+    
+#put rest of our functions here
+
+
+#get info about a posting 
+def getPosting(conn, pid):
+    curs = conn.cursor(MySQLdb.cursors.DictCursor)
+    curs.execute('''Select * from project where pid = %s''', [pid])
+    return curs.fetchone()
+   
+#SQL query to get pid, name, pay, minimum hours, location from project table using the pid    
+def search_posting_pid(conn, pid): 
+    curs = conn.cursor()
+    curs.execute('''select pid,name,pay,minHours,
+    location from project where pid = %s;''',
+                    [pid])
+    return curs.fetchone()  
+
+#SQL code to insert posting using pid, name, pay, minimum hours, location    
+def insert_posting(conn, pid, name, pay, minHours, location): 
+    curs = conn.cursor()
+    curs.execute('''insert into posting(pid,name,minHours, location)
+values (%s,%s,%s, %s);''',
+                    [pid,name,minHours,location])
+    return curs
+  
+#SQL query to get a list of all current postings    
+def find_allPostings(conn):
+    curs = conn.cursor()
+    curs.execute('''select pid,name,pay,minHours, 
+    location from project;''')
+    allPostings = curs.fetchall()
+    return allPostings;
+
+#SQL query to get specifically email of a student with a given name 
+def get_email(conn, name):
+    curs = conn.cursor()
+    curs.execute('''select email from user where name like %s;''', [name + '%'])
+    email = curs.fetchone()
+    return email[0]
+
+   
+if __name__ == '__main__':
+    conn = getConn('clickdb')
+    #addSkill(conn, "student2@gmail.com", "editing")
+    #print(removeSkill(conn, "student1@gmail.com", "math tutoring"))
+    #studentSkills(conn, "student1@gmail.com")
+<!--CS 304 Project
+Dana, Erica, and Gabby -->
+<!DOCTYPE html>
+<html lang ="en" >
+<head>
+    <meta charset = 'utf-8'>
+    <meta name= author content= "Gabby Liu"
+    <title>{{title}}</title>
+    <link type="text/css" rel="stylesheet" href= "{{url_for('static', filename ='style.css')}}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+</head> 
+
+
+<head>
+    {% block title %}
+    <title>Click</title>
+    {% endblock %}
+</head>
+
+<body>  
+    <nav>
+        <a id='navLK' href="{{ url_for('login') }}"> Login </a>
+        <!--add more navigation here-->
+    </nav>
+
+    {% block content %}
+          {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div id="messages">
+            {% for msg in messages %}
+                <p>{{msg}}</p>
+            {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <h1>Click</h1>
+    {% endblock %}   
+    
+<script src="https://code.jquery.com/jquery.js"></script>
+{% block jquery_scripts %}
+<script>
+console.log('jQuery loaded');
+</script>
+{% endblock %}
+
+</body>
+
+</html><!-- Erica Ma -->
+
+
+{% extends "jobPoster.html" %}
+
+{% block title %} Insert {% endblock %}
+
+{% block content %}
+
+    <h1>Create a New Project Posting </h1>
+    <form method = "post" > 
+    <fieldset>
+        <legend> Project Information </legend>
+            <table>
+    <tbody>
+        <tr>
+            <td>
+                <label for="project-pid" accesskey="i">(i) Project ID:</label></td>
+            <td>
+                <input type="text" name="project-pid" id="project-pid"></td></tr>
+    <tr>
+        <td>
+            <label for="project-name" accesskey="n">(n) Project Name:</label></td>
+        <td>
+            <input type="text" name="project-name" id="project-name"></td></tr>
+    <tr>
+        <td>
+            <label for="project-pay" accesskey="p">(p) Pay:</label></td>
+        <td>
+            <input type="text" name="project-pay" id="project-pay"></td></tr>
+    <tr>
+        <td>
+            <label for="project-minHours" accesskey="h">(h) Minimum Hours:</label></td>
+        <td>
+            <input type="text" name="project-minHours" id="project-minHours"></td></tr>
+    <tr>
+        <td>
+            <label for="project-location" accesskey="l">(l) Location:</label></td>
+        <td>
+            <input type="text" name="project-location" id="project-location"></td></tr>
+    </tbody>
+    </table>
+    <p> 
+    <input type="submit" value="Create a New Project Posting"> </p>
+    
+    </form>
+{% endblock %}<!--Erica -->
+<html>
+    
+    <head>
+        <html lang="en">
+        <link rel="stylesheet" href="../static/style.css">
+        <link rel="shortcut icon" href="your_image_path_and_name.ico" />
+        <title>
+        {% block title %}
+        Home
+        {% endblock %}
+        </title>
+        
+    </head>
+    
+    <body>
+
+        <h1>Job Poster Page</h1>
+            <p> Welcome to Click! </p>
+            <p>You can <a href="/selectPosting/">check your current postings</a>, 
+            <a href="/insertPosting/">create a new project posting</a>, or 
+            <a href="/searchStudent/">search potential student candidates</a>.</p>
+            
+
+ {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <div id="messages">
+        {% for msg in messages %}
+            <p>{{msg}}</p>
+        {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %} 
+
+
+        
+        {% block content %}
+        <div id="content">
+        </div>
+        {% endblock %}
+        
+    </body>
+</html><<<<<<< HEAD
+<html>
+=======
+>>>>>>> 61191da32f7f52508101364fc5eef7b17dd0c35a
+<head>
+    <meta charset = 'utf-8'>
+    <meta name= author content= "Gabby Liu"
+    <title>Login</title>
+    <link type="text/css" rel="stylesheet" href= "{{url_for('static', filename ='style.css')}}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+</head>
+
+<h1>Login/Register</h1> 
+
+<<<<<<< HEAD
+
+{% for msg in get_flashed_messages() %}
+    <class="error"> {{msg}} </class>
+    <br>
+{% endfor %}
+
+
+=======
+>>>>>>> 61191da32f7f52508101364fc5eef7b17dd0c35a
+<p>Please login or register, using one of the forms below:</p>
+
+    <form id="loginform" action="{{url_for('login')}}" method="post">
+        <h2 align="center">Login</h2>
+        <!--the pattern part in the code below ensures that the input needs to be something@something.domain-->
+<<<<<<< HEAD
+        <p><label>Username: <input type="text" name="username" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"></label></p>
+=======
+        <p><label>Username: <input type="text" name="username" required pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"></label></p>
+>>>>>>> 61191da32f7f52508101364fc5eef7b17dd0c35a
+        <p><label>Password: <input type="password" name="password" required></label></p>
+        <p><button type="submit">Submit</button></p>
+    </form>
+
+    <form id="registerform" action="{{url_for('register')}}" method="post">
+        <h2 align="center">Join</h2>
+        <p><label>  Username: <input type="text" name="username" required pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"></label></p>
+        <p><label> Password: <input type="password" name="password1" required></label></p>
+        <p><label> Confirm Password: <input type="password" name="password2" required></label></p>
+        <p><button type="submit">Submit</button></p>
+    </form>
+<<<<<<< HEAD
+    
+
+</body>
+</html>
+
+=======
+>>>>>>> 61191da32f7f52508101364fc5eef7b17dd0c35a
+
+<script>
+/*global $*/
+$("#registerform").on('submit', function (event) {
+     var password1 = $(this).find('[name=password1]').val();
+     var password2 = $(this).find('[name=password2]').val();
+     // should also check for length and common words etc
+     if( password1 != password2 ) {
+         // if password don't match, should alert the user using a popup box
+         alert("Your passwords don't match.Please retype your passwords.");
+     }
+});
+</script>
+<!--Erica -->
+{% extends "home.html" %}
+
+{%block content %}
+      
+<h1>Job Poster Page</h1>
+    <p> Welcome to Click! </p>
+       
+    <p>You can <a href="posting/{{pid}}">post a new project</a>, or search potential
+    <a href="searchStudent.html">student candidates</a>.</p>
+
+{% endblock %}<!--Erica Ma -->
+
+
+{% extends "jobPoster.html" %}
+
+{% block title %} Search {% endblock %}
+
+{% block content %}
+
+<div id="content">
+
+      
+      
+
+    <h1>Search by Student Name</h1>
+
+    <form method="POST" >
+        <label for="search-name">name: </label>
+        <input name="search-name" id = "search-name">
+        <input type="submit" name="submit-btn" value="Search">
+    </form>
+
+
+    </div>
+    
+    {% endblock %}<!-- Erica Ma -->
+
+{% extends "jobPoster.html" %}
+
+{% block title %} Search {% endblock %}
+
+{% block content %}
+
+<div id="content">
+
+        <div id="flashes">
+        
+        
+        </div>
+      
+
+    <h1>Check Your Current Postings</h1>
+
+    <form method="POST">
+        <label for="select-name">Your Current Postings:
+        </label>
+        <select name="select-name" id = "select-name">
+          <option value="none">Choose One</option>
+          
+           {% for project in allPostings %}
+            <option value="{{ project[0] }}"> {{ project[1] }}</option>
+            {% endfor %}
+          
+        </select>
+        <input type="submit" name="menu-pid" value="Choose">
+    </form>
+
+    </div>
+    
+    {% endblock %}<!--CS 304 Project
+Dana -->
+{% extends "home.html" %}
+
+{%block content %}
+      
+<h1>Student Page</h1>
+    <p> Welcome to Click! </p>
+       
+    <p>You can <a href="{{url_for('studentProfile', email=email)}}">manage your profile</a>, or search available
+    <a href="jobs.html">job postings</a>.</p>
+
+{% endblock %}<!--CS 304 Project
+Dana -->
+{% extends "home.html" %}
+
+{%block content %}
+        
+<h1>Your Profile</h1>
+
+<p>Name: {{name}}</p>
+
+<p>Email: {{email}}</p>
+ 
+ <!--list skills, each with a remove button -->      
+<form method="post" action="">
+    {% for skill in skills %}
+         <p>
+          <label for="skill"}>{{skill.skill}}</label>
+          <input id="skill" name="skill" type="text" value="{{skill.skill}}">
+          <input id="skill" class="submit" name="submit" type="submit" value="Remove"></p>
+    {% endfor %}
+    
+    <p>
+        <input id="newSkill" name="newSkill" type="text">
+        <input class="submit" name="submit" type="submit" value="Add skill">
+    </p>
+</form>
+
+{% endblock %}<!--Erica Ma -->
+
+{% extends "jobPoster.html" %}
+
+
+{% block title %} Update {% endblock %}
+
+{% block content %}
+
+<div id="content">
+
+        <div id="flashes">
+        </div>
+  <h1>Update Posting</h1>
+
+  <p>Use "None" or "null" to set a field to null. Only Name, Pay and 
+  Minimum Hours can be null.
+
+    </p><form method="POST">
+      <table>
+        <tbody><tr>
+          <td><label for="project-name">Project Name</label></td>
+          <td><input name="project-name" id = "project-name" value="{{name}}">
+          </td> 
+        </tr>
+        <tr>
+          <td><label for="project-name">Project id</label></td>
+          <td><input name="project-pid" id = "project-pid" value="{{pid}}"></td>
+        </tr>
+        <tr>
+          <td><label for="project-pay">Pay</label></td>
+          <td><input name="project-pay" id = "project-pay" value="{{pay}}">
+          </td>
+        </tr>
+        <tr>
+          <td><label for="project-minHours">Minimum Hours</label></td>
+          <td><input name="project-minHours" id = "project-minHours" value="{{minHours}}">
+          </td>
+        </tr>
+        <tr>
+          <td><label for="project-location">Location</label></td>
+          <td><input name="project-location" id = "project-location" value="{{location}}">
+          </td>
+        </tr>
+      </tbody></table>
+      <input type="submit" name="submit" value="update">
+      <input type="submit" name="submit" value="delete">
+    </form>
+
+    </div>
+    
+{% endblock %}body{
+    background-color: rgb(235,246,244);
+    color: rgb(21,148,239);
+    font-family: Verdana;
+}
+
+main_body{
+    margin-left: 80px;
+    margin-right: 80px;
+    margin-top: 30px;
+}
+
+img {
+    float: left;
+    zoom: 0;
+    width: 25%;
+    height: 50%;
+}
+ 
+
+ul{
+    list-style: none
+}
+
+h1{
+    text-align: center; 
+    color: rgb(54, 222, 247);
+}
+
+h2{
+    color: rgb(7, 54, 178);
+    border: rgb(7, 54, 178);
+}
+
+h3{
+    text-align: center;
+    color: rgb(111, 205, 237);
+    border: double rgb(133, 197, 229);
+    padding: 10px;
+    margin-left: 275px;
+    margin-right: 275px;
+}
+
+p {
+   text-align: center; 
+}
+
+
+table {
+    margin: 0 auto;
+}
+
+
+nav {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: rgb(146, 227, 239);
+    font-size: 110% ;
+}
+
+
+nav a {
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 20px 30px;
+    text-decoration: none;
+    float: left;
+}
+
+nav a:hover {
+    background-color: #bdeaee;
+    color: #5e5656;
+}
+
+
+.row {
+  width: 100%;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.blockLeft{
+  float: left;
+  display: inline-block;
+  zoom: 0;
+  width: 15%;
+  height: 45%;
+  padding: 5px;
+  border: 1px solid blue;    
+  background-color: #e8e4da; 
+}
+
+.tableMiddle {
+    width: 75%;
+    height: 100%;
+    position: absolute;
+    display: inline-block;
+    zoom: 1.5;
+    text-align: middle;
+}
+    
+.inventoryBlock {
+    width: 18%;
+    height: 46%;
+    position: absolute;
+    display: inline-block;
+    zoom: 0;
+    padding: 5px;
+    border: 3px solid brown;    
+    background-color: #e8e4da; 
+    text-align: center;
+    margin: auto;
+    left: -45; 
+    right: 30%;
+    top: 10;
+    bottom: 0%;
+}
+
+.donationsBlock {
+    width: 18%;
+    height: 46%;
+    position: absolute;
+    display: inline-block;
+    zoom: 0;
+    padding: 5px;
+    border: 3px solid brown;    
+    background-color: #e8e4da; 
+    text-align: center;
+    margin: auto;
+    left: 3%; 
+    right: 0%;
+    top: 10;
+    bottom: 0%;
+}
+
+.expendituresBlock {
+    width: 18%;
+    height: 46%;
+    position: absolute;
+    display: inline-block;
+    zoom: 0;
+    padding: 5px;
+    border: 3px solid brown;    
+    background-color: #e8e4da; 
+    text-align: center;
+    margin: auto;
+    left: 5%; 
+    right: -35%;
+    top: 10;
+    bottom: 0%;
+}
+
+#itemList {
+    margin-left:auto; 
+    margin-right:auto;
+
+}
+
+#itemSpecifics {
+    margin-left:auto; 
+    margin-right:auto;
+
+}
+
+#login {
+    width: 15%;
+    height: 30%;
+    position: absolute;
+    display: inline-block;
+    zoom: 0;
+    text-align: center;
+    margin: auto;
+    left: 0; 
+    right: -70%;
+    top: 0%;
+    bottom: 15%;
+}
+
+
+#header {
+    font-weight: bold;
+    color: rgb(115, 212, 239);
+    text-align: center;
+}
+
+#totals{
+    text-align: left;
+}
+
+
+h4{
+    text-align: center;
+    color: rgb(96, 242, 237);
+}
+
+/*for use with donation submission page*/
+.columns {
+    width: 80%;
+    height: 350px;
+    margin: auto;
+    padding: 0px;
+}
+.left {
+    width: 50%;
+    height: 350px;
+    float: left;
+    border: 1px solid rgb(124, 243, 249);
+}
+.right {
+    margin-left: 50%;
+    height: 350px;
+    border: 1px solid rgb(204, 248, 249);
+}
+
+.center-submit{
+    width: 130px;
+    height: 40px;
+    margin:0 50%;
+    position:relative;
+    left:-65px;
+}
+
+input[type=submit]{
+    background-color: rgb(122, 233, 249);
+    color: white;
+    font-family: Verdana;
+    border-radius: 5px;
+    border: 0px;  
+}
+
+button{
+    background-color: rgb(9, 203, 232);
+    color: white;
+    font-family: Verdana;
+    border-radius: 5px;
+    border: 0;  
+}

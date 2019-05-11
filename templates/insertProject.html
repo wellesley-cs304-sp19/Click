@@ -1,0 +1,47 @@
+<!-- Erica Ma -->
+
+
+{% extends "jobPoster.html" %}
+
+{% block title %} Insert {% endblock %}
+
+{% block content %}
+
+    <h1>Create a New Project </h1>
+    <form method = "post" > 
+    <fieldset>
+        <legend> Project Information </legend>
+            <table>
+    <tbody>
+        <tr>
+            <td>
+                <label for="project-pid" accesskey="i">(i) Project ID:</label></td>
+            <td>
+                <input type="text" name="project-pid" id="project-pid"></td></tr>
+    <tr>
+        <td>
+            <label for="project-name" accesskey="n">(n) Project Name:</label></td>
+        <td>
+            <input type="text" name="project-name" id="project-name"></td></tr>
+    <tr>
+        <td>
+            <label for="project-pay" accesskey="p">(p) Pay:</label></td>
+        <td>
+            <input type="text" name="project-pay" id="project-pay"></td></tr>
+    <tr>
+        <td>
+            <label for="project-minHours" accesskey="h">(h) Minimum Hours:</label></td>
+        <td>
+            <input type="text" name="project-minHours" id="project-minHours"></td></tr>
+    <tr>
+        <td>
+            <label for="project-location" accesskey="l">(l) Location:</label></td>
+        <td>
+            <input type="text" name="project-location" id="project-location"></td></tr>
+    </tbody>
+    </table>
+    <p> 
+    <input type="submit" value="Create a New Project"> </p>
+    
+    </form>
+{% endblock %}

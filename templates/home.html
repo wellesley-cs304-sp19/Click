@@ -6,19 +6,54 @@ Dana, Erica, and Gabby -->
     <meta charset = 'utf-8'>
     <meta name= author content= "Gabby Liu"
     <title>{{title}}</title>
+<<<<<<< HEAD
+    <link type="text/css" rel="stylesheet" href= "{{url_for('static', filename ='style.css')}}">
+=======
     {% block head %}
     <link type="text/css" rel="stylesheet" href= "{{url_for('static', filename ='style.css')}}">
     {% endblock %}
+>>>>>>> origin/master
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 </head> 
 
 
+<<<<<<< HEAD
+<head>
+    {% block title %}
+    <title>Click</title>
+    {% endblock %}
+</head>
+
+=======
+>>>>>>> origin/master
 <body>  
     <nav>
         <a id='navLK' href="{{ url_for('login') }}"> Login </a>
         <!--add more navigation here-->
     </nav>
 
+<<<<<<< HEAD
+    {% block content %}
+          {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div id="messages">
+            {% for msg in messages %}
+                <p>{{msg}}</p>
+            {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <h1>Click</h1>
+    {% endblock %}   
+    
+<script src="https://code.jquery.com/jquery.js"></script>
+{% block jquery_scripts %}
+<script>
+console.log('jQuery loaded');
+</script>
+{% endblock %}
+=======
     <br>
     
     <main_body>
@@ -37,6 +72,7 @@ Dana, Erica, and Gabby -->
     {% endblock %}
     
     </main_body>
+>>>>>>> origin/master
 
 </body>
 

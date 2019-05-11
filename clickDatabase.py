@@ -3,6 +3,23 @@
 
 import sys
 import MySQLdb
+
+'''our clickdb connection'''
+def getConn(db):
+    conn = MySQLdb.connect(host='localhost',
+                           user='ubuntu',
+                           passwd='',
+                           db=db)
+    conn.autocommit(True)
+    return conn
+
+#gets student's profile from database
+def getStudent(conn, email):
+    curs = conn.cursor(MySQLdb.cursors.DictCursor)
+    curs.execute('''Select * from user where email = %s''', [email])
+    return curs.fetchone()
+
+#get all student's skills from database    
 import threading
 from connection import getConn
 import re
@@ -21,6 +38,15 @@ def studentSkills(conn, email):
     where hasSkill.email = %s''', [email])
     return curs.fetchall()
     
+#removes skill from student  
+def removeSkill(conn, email, skill):
+    curs = conn.cursor(MySQLdb.cursors.DictCursor)
+    curs.execute('''Select sid from skills where skill = %s''', [skill])
+    skillNum = curs.fetchone().values()[0]
+    nr = curs.execute('''delete from hasSkill where sid = %s and email = %s''', [skillNum, email])
+    return nr
+
+#adds skill to student    
 '''Removes skill from student'''  
 def removeSkill(conn, email, skill):
     curs = conn.cursor(MySQLdb.cursors.DictCursor)
@@ -33,6 +59,16 @@ def addSkill(conn, email, skill):
     curs = conn.cursor(MySQLdb.cursors.DictCursor)
 
     curs.execute('''Select sid from skills where skill = %s''', [skill])
+    skillNum = curs.fetchone()
+    #if skill not in skills table, add it
+    if skillNum == None:
+        curs.execute('''insert into skills(skill) values (%s)''', [skill])
+        curs.execute('''Select sid from skills where skill = %s''', [skill])
+        skillNum = curs.fetchone()
+    #continue with inserting email and skill into hasSkill table
+    nr = curs.execute('''insert into hasSkill(email, sid) values (%s, %s)''', [email, skillNum.values()[0]])
+    return nr
+    
     skillQuery = curs.fetchone() #stores results from query to get skills
     #if skill not in skills table, add it
     if skillQuery == None:
@@ -73,6 +109,29 @@ def addUser(conn,email,password):
     curs=conn.cursor()
     newrow=curs.execute('''insert into user(email,password) values (%s,%s)''',[email,password])
     return newrow
+    
+#put rest of our functions here
+
+
+#get info about a posting 
+def getPosting(conn, pid):
+    curs = conn.cursor(MySQLdb.cursors.DictCursor)
+    curs.execute('''Select * from project where pid = %s''', [pid])
+    return curs.fetchone()
+   
+#SQL query to get pid, name, pay, minimum hours, location from project table using the pid    
+
+
+def search_posting_pid(conn, pid): 
+
+    curs = conn.cursor()
+    curs.execute('''select pid,name,pay,minHours,
+    location from project where pid = %s;''',
+                    [pid])
+    return curs.fetchone()  
+
+
+
 
 #SQL code to insert posting using pid, name, pay, minimum hours, location    
 def insert_posting(conn, pid, name, pay, minHours, location): 
@@ -82,6 +141,14 @@ values (%s,%s,%s, %s);''',
                     [pid,name,minHours,location])
     return curs
   
+#SQL query to get a list of all current projects    
+def find_allProjects(conn):
+    curs = conn.cursor()
+    curs.execute('''select pid,name,pay,minHours, 
+    location from project;''')
+    allProjects = curs.fetchall()
+    return allProjects;
+
 #SQL query to get a list of all current postings    
 def find_allPostings(conn):
     curs = conn.cursor()
@@ -107,6 +174,13 @@ def get_email(conn, name):
     email = curs.fetchone()
     return email[0]
 
+   
+if __name__ == '__main__':
+    conn = getConn('clickdb')
+    #addSkill(conn, "student2@gmail.com", "editing")
+    #print(removeSkill(conn, "student1@gmail.com", "math tutoring"))
+    #studentSkills(conn, "student1@gmail.com")
+
 
    
 if __name__ == '__main__':
@@ -114,3 +188,4 @@ if __name__ == '__main__':
     #addSkill(conn, "student2@gmail.com", "public speaking")
     #print(removeSkill(conn, "student1@gmail.com", "math tutoring"))
     #print(studentSkills(conn, "student1@gmail.com"))
+

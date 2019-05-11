@@ -1,7 +1,19 @@
 <!--CS 304 Project
 Gabby
 Page that helps the user to filter jobs-->
-{% extends "home.html" %} 
+
+{% extends "home.html" %}
+
+{%block content %}
+      
+<h1>Job Poster Page</h1>
+    <p> Welcome to Click! </p>
+       
+    <p>You can <a href="posting/{{pid}}">post a new project</a>, or search potential
+    <a href="searchStudent.html">student candidates</a>.</p>
+
+{% endblock %}
+
 
 {% block title %} 
     <h1>Search Project </h1>
@@ -58,4 +70,8 @@ Page that helps the user to filter jobs-->
         </div>
     </div>
 
+
 {% endblock %}
+=======
+{% endblock %}
+
