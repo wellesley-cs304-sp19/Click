@@ -8,6 +8,7 @@ import MySQLdb
 import sys
 import bcrypt
 import clickDatabase
+import search_project
 from connection import getConn
 from functools import wraps
 import os
@@ -18,13 +19,12 @@ app.secret_key = ''.join([ random.choice(('ABCDEFGHIJKLMNOPQRSTUVXYZ' +
                                           'abcdefghijklmnopqrstuvxyz' +
                                           '0123456789'))
                            for i in range(20) ])
-                          
+
 
 #route to the home page
 @app.route("/")
 def home():
     return render_template('home.html')
-    
 
 '''Since in the future, we want to have a user visiting
     a site to be redirected to the login page if they are
@@ -42,22 +42,30 @@ def login_required(f):
             return redirect(url_for('login'))
     return decorated_fcn()
 
-    
+
 #route to the login page
-@app.route('/login/',methods=['GET','POST'])
+@app.route('/login/',methods=['POST'])
 def login():
     #the code below works well
+    '''if request.method=='GET':
+=======
+
     if request.method=='GET':
         return render_template('login.html')
-    else:
+    else:'''
+    try:
         print("test enter")
         username=request.form['username']
         password=request.form['password']
-        conn=clickDatabase.getConn('clickdb')
+        conn=getConn()
         curs=conn.cursor(MySQLdb.cursors.DictCursor)
-        curs.execute('select password from user where email=%s',[username])
+        curs.execute('select hashed from user where email=%s',[username])
         row=curs.fetchone()
         if row is None:
+            flash('Login failed. Please register or try again')
+            return redirect(url_for('home'))
+        hashed=row['password']
+        if bcrypt.hashpw(password.encode('utf-8'),hashed.encode('utf-8'))==hashed:
             print("test enter1")
             flash('Login failed. Please register or try again')
             return redirect(url_for('home'))
@@ -69,13 +77,12 @@ def login():
             session['logged_in']= True
             return redirect(url_for('home'))
         else:
-            print("test enter3")
             flash('Login failed. Please register or try again')
             return redirect(url_for('login'))
-        #except Exception as err:
-            #flash('From submission error'+str(err))
-            #return render_template('login.html')
-            #return redirect(url_for('home'))
+    except Exception as err:
+        flash('From submission error'+str(err))
+        return redirect(url_for('home'))
+        
 
 @app.route('/loginPage/',methods=["POST"])  
 def redirectToLogin():
@@ -103,14 +110,14 @@ def register():
         if row is not None:
             flash('This email has already been used')
             return redirect(url_for('login'))
-        curs.execute('insert into user(email,password) values (%s,%s)',[username,hashed])
+        curs.execute('insert into user(email,hashed) values (%s,%s)',[username,hashed])
         session['username']=username
         session['logged_in']=True
         flash('Successfully logged in as'+username)
         return redirect(url_for('login'))
     except Exception as err:
         flash('From submission error'+str(err))
-        return redirect(url_for('index'))
+        return redirect(url_for('home'))
 
 #route to logout
 @app.route('/logout/')
@@ -129,7 +136,9 @@ def logout():
     except Exception as err:
         flash('Error Message: '+str(err))
         return redirect( url_for('home') )
-        
+    
+#route to page that student sees when first log in
+
 '''route to page that student sees when first log in'''
 @app.route("/student/<email>")
 #@login_required
@@ -154,9 +163,57 @@ def jobPosterPage(email):
     return render_template('jobPoster.html',
                             email=email)                           
 
-'''Route to page that allows student to view profile and add skills.
-   The student profile is for the student that is currently logged in.
-'''
+#route to page that allows student to view profile and add skills    
+@app.route("/studentProfile/<email>", methods = ['GET', 'POST'])
+#@login_required
+def studentProfile(email):
+    studentInfo = clickDatabase.getStudent(conn, email)
+    skills = clickDatabase.studentSkills(conn, email)
+    #if GET, renders page with all information about student in database
+    if request.method == 'GET':
+        return render_template('studentProfile.html',
+                            name = studentInfo['name'],
+                            email = studentInfo['email'],
+                            skills = skills)
+    #if POST, either adding or removing a skill
+    else:
+        #removing skill
+        if request.form['submit'] == 'Remove':
+            skill = request.form.get('skill')
+            clickDatabase.removeSkill(conn, email, skill)
+            return redirect(url_for('studentProfile',
+                            email = studentInfo['email']))
+        #adding skill
+        else:
+            newSkill = request.form.get('newSkill')
+            clickDatabase.addSkill(conn, email, newSkill)
+            return redirect(url_for('studentProfile',
+                            email = studentInfo['email']))
+
+#route to page that allows job poster to see his/her current projects     
+@app.route("/project/<pid>", methods = ['GET', 'POST'])
+def project(pid):
+    #if GET, renders page with all information about that project in database
+    if request.method == 'GET':
+        projectInfo = clickDatabase.getProject(conn, pid)
+        return render_template('project.html',
+                            name = projectInfo['name'],
+                            minHours = projectInfo['minHours'],
+                            pay = projectInfo['pay'],
+                            location = projectInfo['location'],
+                            )
+
+# insert page
+@app.route('/insertProject/')
+def insertProject():
+    return render_template('insertProject.html')
+
+# insert page form handling 
+@app.route('/insertProject/', methods=['GET','POST'])
+def submit_insertProject():
+    '''Route to page that allows student to view profile and add skills.
+       The student profile is for the student that is currently logged in.
+    '''
 @app.route("/studentProfile/<email>", methods = ['GET'])
 #@login_required
 def studentProfile(email):
@@ -218,7 +275,7 @@ def studentUpdate(email):
                             
 @app.route("/jobs", methods = ['GET', 'POST'])
 def jobs():
-    conn = clickDatabase.getConn('clickdb')
+    conn = getConn()
     if request.method == 'GET':
         jobs = clickDatabase.getJobs(conn)
         return render_template('jobs.html', jobs = jobs)
@@ -301,6 +358,7 @@ def selectProject():
     conn = clickDatabase.getConn('clickdb')
     allProjects = clickDatabase.find_allProjects(conn)
     return render_template('selectProject.html', allProjects=allProjects)
+
     
 # returns true when a SQL query's result is not empty
 def isValid(results):
@@ -316,6 +374,7 @@ def select_project():
     else: 
         flash('Please select a project')
         return render_template('selectProject.html')
+
         
 # search page
 @app.route('/searchStudent/')
@@ -330,9 +389,11 @@ def search_student():
     email = clickDatabase.get_email(conn, name)
     if isValid(email):
         return redirect(url_for('updateProject', email=email))
+
     else: 
         flash('Requested student does not exist')
-        return render_template('searchStudent.html')
+        return render_template
+        
 
 @app.route("/students", methods = ['GET', 'POST'])
 def students():

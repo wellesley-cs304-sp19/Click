@@ -1,5 +1,7 @@
-<<<<<<< HEAD
-<!--Erica -->
+<!--CS 304 Project
+Gabby
+Page that helps the user to filter jobs-->
+
 {% extends "home.html" %}
 
 {%block content %}
@@ -11,60 +13,56 @@
     <a href="searchStudent.html">student candidates</a>.</p>
 
 {% endblock %}
-=======
-{% extends "home.html" %} 
+
 
 {% block title %} 
-    <h1>Search Donations Table</h1>
+    <h1>Search Project </h1>
     
 {% endblock %}
 
 {% block content %}
         
     <form method=POST action="/reset/">
-        <input type="submit" name="submit-reset" value="Reset Donations">
+        <input type="submit" name="submit-reset" value="Reset Projects">
     </form>
     
     <div class = "row">
         <div class = "blockLeft">
-            <form name="FilterForm" id="FilterForm" method=POST action="/filterDonations/sortBy/">
+            <form name="FilterForm" id="FilterForm" method=POST action="/filterProjects/sortBy/">
                 <label for="menu-tt">Order By:</label>
                 <select name="menu-tt">
                   <option value="none">Select</option>
-                    <option value = "Most Recent Donation" > Most Recent Donation</option>
-                    <option value = "Oldest Donation First" > Oldest Donation First</option>
-                    <option value = "Alphabetical By Type" > Alphabetical By Type </option>
+                    <option value = "Min Hours Ascending" > Min Hours Ascending</option>
+                    <option value = "Pay Descending" > Pay Descending</option>
+                    <option value = "Alphabetical By Location" > Alphabetical By Location </option>
                  </select>
-                <p><label>Filter by Type:</label></p>
+                <p><label>Filter by Location:</label></p>
                 <ul>
-                    <li><input type="checkbox" name="type" value="food" >food</li>
-                    <li><input type="checkbox" name="type"  value="medical" >medical</li>
-                    <li><input type="checkbox" name="type"  value="clothing" >clothing</li>
-                    <li><input type="checkbox" name="type"  value="supplies" >supplies</li>
-                    <li><input type="checkbox" name="type"  value="money" >money</li>
+                    <li><input type="checkbox" name="type" value="local" >local</li>
+                    <li><input type="checkbox" name="type"  value="remote" >remote</li>
                 </ul>
                 <input type="submit" name="submit-btn" value="Sort">
             </form>
         </div>
         
         <div class = "tableMiddle">  
-            <table id="donation-list" border=1>
+            <table id="project-list" border=1>
                 <tr>
-                    <th>Date of Submission</th>
-                    <th>Donation Name</th>
-                    <th>Amount</th>
-                    <th>Units</th>
-                    <th>Type</th>
+                    <th>Project ID</th>
+                    <th>Project Name</th>
+                    <th>Min Hours</th>
+                    <th>Pay</th>
+                    <th>Location</th>
                 </tr>
     
-                <!-- Fills out donation history table --> 
-                {% for donation in allDonations %}
-                <tr data-tt="{{donation.donationID}}">
-                    <td class="date">{{donation.submitDate}}</td>
-                    <td class="description">{{donation.description}}</td>
-                    <td class="amount">{{donation.amount}}</td>
-                    <td class="units">{{donation.units}}</td>
-                    <td class="type">{{donation.type}}</td>
+                <!-- Fills out project table --> 
+                {% for project in allProjects %}
+                <tr data-tt="{{project.pid}}">
+                    <td class="pid">{{project.pid}}</td>
+                    <td class="description">{{project.name}}</td>
+                    <td class="minHours">{{project.minHours}}</td>
+                    <td class="pay">{{project.pay}}</td>
+                    <td class="location">{{project.location}}</td>
                 </tr>
                 {% endfor %}
     
@@ -72,5 +70,8 @@
         </div>
     </div>
 
+
 {% endblock %}
->>>>>>> origin/master
+=======
+{% endblock %}
+
