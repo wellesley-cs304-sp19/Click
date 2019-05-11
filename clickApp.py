@@ -8,6 +8,7 @@ import MySQLdb
 import sys
 import bcrypt
 import clickDatabase
+import search_project
 from connection import getConn
 from functools import wraps
 import os
@@ -44,18 +45,19 @@ def login_required(f):
 
     
 #route to the login page
-@app.route('/login/',methods=['GET','POST'])
+@app.route('/login/',methods=['POST'])
 def login():
     #the code below works well
-    if request.method=='GET':
+    '''if request.method=='GET':
         return render_template('login.html')
-    else:
+    else:'''
+    try:
         print("test enter")
         username=request.form['username']
         password=request.form['password']
-        conn=clickDatabase.getConn('clickdb')
+        conn=getConn()
         curs=conn.cursor(MySQLdb.cursors.DictCursor)
-        curs.execute('select password from user where email=%s',[username])
+        curs.execute('select hashed from user where email=%s',[username])
         row=curs.fetchone()
         if row is None:
             print("test enter1")
@@ -71,11 +73,11 @@ def login():
         else:
             print("test enter3")
             flash('Login failed. Please register or try again')
-            return redirect(url_for('login'))
-        #except Exception as err:
-            #flash('From submission error'+str(err))
-            #return render_template('login.html')
-            #return redirect(url_for('home'))
+            return redirect(url_for('home'))
+    except Exception as err:
+        flash('From submission error'+str(err))
+        #return render_template('login.html')
+        return redirect(url_for('home'))
 
 @app.route('/loginPage/',methods=["POST"])  
 def redirectToLogin():
@@ -103,14 +105,14 @@ def register():
         if row is not None:
             flash('This email has already been used')
             return redirect(url_for('login'))
-        curs.execute('insert into user(email,password) values (%s,%s)',[username,hashed])
+        curs.execute('insert into user(email,hashed) values (%s,%s)',[username,hashed])
         session['username']=username
         session['logged_in']=True
         flash('Successfully logged in as'+username)
         return redirect(url_for('login'))
     except Exception as err:
         flash('From submission error'+str(err))
-        return redirect(url_for('index'))
+        return redirect(url_for('home'))
 
 #route to logout
 @app.route('/logout/')
@@ -218,7 +220,7 @@ def studentUpdate(email):
                             
 @app.route("/jobs", methods = ['GET', 'POST'])
 def jobs():
-    conn = clickDatabase.getConn('clickdb')
+    conn = getConn()
     if request.method == 'GET':
         jobs = clickDatabase.getJobs(conn)
         return render_template('jobs.html', jobs = jobs)
@@ -231,7 +233,7 @@ def jobs():
 #route to page that allows job poster to see his/her current postings     
 @app.route("/posting/<pid>", methods = ['GET', 'POST'])
 def posting(pid):
-    conn = clickDatabase.getConn('clickdb')
+    conn = getConn()
     #if GET, renders page with all information about that posting in database
     if request.method == 'GET':
         postingInfo = clickDatabase.getPosting(conn, pid)
@@ -250,7 +252,7 @@ def insertPosting():
 # insert page form handling 
 @app.route('/insertPosting/', methods=['GET','POST'])
 def submit_insertPosting():
-    conn = clickDatabase.getConn('clickdb')
+    conn = getConn()
     if request.method == 'POST':
     
         # checking database to see if the given pid is in use 
@@ -332,7 +334,8 @@ def search_student():
         return redirect(url_for('updatePosting', email=email))
     else: 
         flash('Requested student does not exist')
-        return render_template('searchStudent.html')
+        return render_template
+        
 
 if __name__ == '__main__':
     app.debug = True

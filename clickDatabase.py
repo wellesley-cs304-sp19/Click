@@ -5,7 +5,6 @@ import sys
 import MySQLdb
 import threading
 from connection import getConn
-from threading import lock
 import re
 
 '''Gets student's information (name, email) from database'''
@@ -68,27 +67,12 @@ def searchJobs(conn, search):
     curs.execute('''select pid, name, minHours, pay, location from project
                     where name like %s''', ['%'+ search + '%'])
     return curs.fetchall()
-    
->>>>>>> d588fb0cdd2bd8b6428ac0874a708f5512e8ba97
+
 #adds a new user
 def addUser(conn,email,password):
     curs=conn.cursor()
     newrow=curs.execute('''insert into user(email,password) values (%s,%s)''',[email,password])
     return newrow
-    
-#get info about a posting 
-def getPosting(conn, pid):
-    curs = conn.cursor(MySQLdb.cursors.DictCursor)
-    curs.execute('''Select * from project where pid = %s''', [pid])
-    return curs.fetchone()
-   
-#SQL query to get pid, name, pay, minimum hours, location from project table using the pid    
-def search_posting_pid(conn, pid): 
-    curs = conn.cursor()
-    curs.execute('''select pid,name,pay,minHours,
-    location from project where pid = %s;''',
-                    [pid])
-    return curs.fetchone()  
 
 #SQL code to insert posting using pid, name, pay, minimum hours, location    
 def insert_posting(conn, pid, name, pay, minHours, location): 
