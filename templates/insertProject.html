@@ -33,11 +33,17 @@
             <label for="project-minHours" accesskey="h">(h) Minimum Hours:</label></td>
         <td>
             <input type="text" name="project-minHours" id="project-minHours"></td></tr>
-    <tr>
-        <td>
-            <label for="project-location" accesskey="l">(l) Location:</label></td>
-        <td>
-            <input type="text" name="project-location" id="project-location"></td></tr>
+    </tr>
+                <!-- dropdown: project type, ie remote or local-->
+                <tr>
+                    <td> Select Project Type: </td>
+                    <td>
+                       <select required name="project-type">
+                            <option value="local"> Local </option>
+                            <option value="remote"> Remote </option>
+                        </select> 
+                    </td>
+                </tr>
     </tbody>
     </table>
     <p> 

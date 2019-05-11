@@ -21,12 +21,10 @@ app.secret_key = ''.join([ random.choice(('ABCDEFGHIJKLMNOPQRSTUVXYZ' +
                                           '0123456789'))
                            for i in range(20) ])
 
-
 #route to the home page
 @app.route("/")
 def home():
     return render_template('home.html')
-
 '''Since in the future, we want to have a user visiting
     a site to be redirected to the login page if they are
     not already logged in. We use a decorator to solve 
@@ -43,17 +41,10 @@ def login_required(f):
             return redirect(url_for('login'))
     return decorated_fcn()
 
-
 #route to the login page
 @app.route('/login/',methods=['GET','POST'])
 def login():
     #the code below works well
-<<<<<<< HEAD
-=======
-    '''if request.method=='GET':
-=======
-
->>>>>>> 35fd6e7d02b97dc3ceff00a7d412088f48446f28
     if request.method=='GET':
         return render_template('login.html')
     else:
@@ -212,17 +203,7 @@ def project(pid):
 @app.route('/insertProject/')
 def insertProject():
     return render_template('insertProject.html')
-<<<<<<< HEAD
     
-=======
-
-# insert page form handling 
-@app.route('/insertProject/', methods=['GET','POST'])
-def submit_insertProject():
-    '''Route to page that allows student to view profile and add skills.
-       The student profile is for the student that is currently logged in.
-    '''
->>>>>>> 35fd6e7d02b97dc3ceff00a7d412088f48446f28
 @app.route("/studentProfile/<email>", methods = ['GET'])
 #@login_required
 def studentProfile(email):
@@ -335,29 +316,29 @@ def filterProjects():
             multiFilter=search_project.multipleFilters(conn,checkbox,dropdown)
             return render_template('project.html',allProjects=multiFilter)
 
-#route to page that allows job poster to see his/her current projects     
-@app.route("/project/<pid>", methods = ['GET', 'POST'])
-def project(pid):
-    conn = clickDatabase.getConn('clickdb')
-    #if GET, renders page with all information about that project in database
+#route to page that allows job poster to see his/her current postings     
+@app.route("/posting/<pid>", methods = ['GET', 'POST'])
+def posting(pid):
+    conn = getConn()
+    #if GET, renders page with all information about that posting in database
     if request.method == 'GET':
-        projectInfo = clickDatabase.getProject(conn, pid)
-        return render_template('project.html',
-                            name = projectInfo['name'],
-                            minHours = projectInfo['minHours'],
-                            pay = projectInfo['pay'],
-                            location = projectInfo['location'],
+        postingInfo = clickDatabase.getPosting(conn, pid)
+        return render_template('posting.html',
+                            name = postingInfo['name'],
+                            minHours = postingInfo['minHours'],
+                            pay = postingInfo['pay'],
+                            location = postingInfo['location'],
                             )
 
 # insert page
-@app.route('/insertProject/')
-def insertProject():
-    return render_template('insertProject.html')
+@app.route('/insertPosting/')
+def insertPosting():
+    return render_template('insertPosting.html')
 
 # insert page form handling 
-@app.route('/insertProject/', methods=['GET','POST'])
-def submit_insertProject():
-    conn = clickDatabase.getConn('clickdb')
+@app.route('/insertPosting/', methods=['GET','POST'])
+def submit_insertPosting():
+    conn = getConn()
     if request.method == 'POST':
     
         # checking database to see if the given pid is in use 
@@ -409,7 +390,6 @@ def selectProject():
     conn = getConn()
     allProjects = clickDatabase.find_allProjects(conn)
     return render_template('selectProject.html', allProjects=allProjects)
-<<<<<<< HEAD
         if (clickDatabase.search_posting_pid(conn, request.form['posting-pid'])) != None:
             flash('bad input: project\'s pid already in use.')
             return render_template('insertPosting.html')
@@ -458,13 +438,11 @@ def selectPosting():
     conn = getConn()
     allPostings = clickDatabase.find_allPostings(conn)
     return render_template('selectPosting.html', allPostings=allPostings)
-=======
->>>>>>> 35fd6e7d02b97dc3ceff00a7d412088f48446f28
 
     
 # returns true when a SQL query's result is not empty
 def isValid(results):
-    return results is not None
+    return results != None
     
 # select page form handling
 @app.route('/selectProject/', methods=['GET','POST'])
@@ -476,6 +454,15 @@ def select_project():
     else: 
         flash('Please select a project')
         return render_template('selectProject.html')
+@app.route('/selectPosting/', methods=['GET','POST'])
+def select_posting():
+    conn = clickDatabase.getConn('clickdb')
+    pid = request.form.get('select-name') ###????
+    if isValid(pid):
+        return redirect(url_for('updatePosting', pid=pid))
+    else: 
+        flash('Please select a project posting')
+        return render_template('selectPosting.html')
 
         
 # search page
@@ -491,24 +478,12 @@ def search_student():
     email = clickDatabase.get_email(conn, name)
     if isValid(email):
         return redirect(url_for('updateProject', email=email))
-
+        return redirect(url_for('updatePosting', email=email))
     else: 
         flash('Requested student does not exist')
         return render_template
         
 
-@app.route("/students", methods = ['GET', 'POST'])
-def students():
-    conn = clickDatabase.getConn('clickdb')
-    if request.method == 'GET':
-        students = clickDatabase.getStudents(conn)
-        return render_template('students.html', students = students)
-    else:
-        if request.form['submit'] == 'Search':
-            search = request.form.get('searchsStudents')
-            filteredStudents = clickDatabase.searchStudents(conn, search)
-            return render_template('students.html', jobs = filteredStudents)
-
 if __name__ == '__main__':
     app.debug = True
-    app.run('0.0.0.0',8081)
+    app.run('0.0.0.0',8080)

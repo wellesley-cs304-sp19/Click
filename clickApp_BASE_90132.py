@@ -14,19 +14,16 @@ from functools import wraps
 import os
 
 app = Flask(__name__)
-app.url_map.strict_slashes = False
 
 app.secret_key = ''.join([ random.choice(('ABCDEFGHIJKLMNOPQRSTUVXYZ' +
                                           'abcdefghijklmnopqrstuvxyz' +
                                           '0123456789'))
                            for i in range(20) ])
 
-
 #route to the home page
 @app.route("/")
 def home():
     return render_template('home.html')
-
 '''Since in the future, we want to have a user visiting
     a site to be redirected to the login page if they are
     not already logged in. We use a decorator to solve 
@@ -43,50 +40,52 @@ def login_required(f):
             return redirect(url_for('login'))
     return decorated_fcn()
 
-
 #route to the login page
-@app.route('/login/',methods=['GET','POST'])
+@app.route('/login/',methods=['POST'])
 def login():
     #the code below works well
-<<<<<<< HEAD
-=======
     '''if request.method=='GET':
 =======
-
->>>>>>> 35fd6e7d02b97dc3ceff00a7d412088f48446f28
+<<<<<<< HEAD
+    #return render_template('login.html')
+    
+    #somehow the code below gives Bad Request: The browser (or proxy) sent a request that this server could not understand.
+    try:
+=======
     if request.method=='GET':
+>>>>>>> 667fcb65abf1fd6db4f8400e8f6d928f2b0fb71d
         return render_template('login.html')
-    else:
-        try:
-            print("test enter")
-            username=request.form['username']
-            password=request.form['password']
-            conn=getConn()
-            curs=conn.cursor(MySQLdb.cursors.DictCursor)
-            curs.execute('select hashed from user where email=%s',[username])
-            row=curs.fetchone()
-            if row is None:
-                flash('Login failed. Please register or try again')
-                return redirect(url_for('home'))
-            hashed=row['password']
-            if bcrypt.hashpw(password.encode('utf-8'),hashed.encode('utf-8'))==hashed:
-                print("test enter1")
-                flash('Login failed. Please register or try again')
-                return redirect(url_for('home'))
-            hashed=row['password']
-            if (bcrypt.hashpw(password.encode('utf-8'),hashed.encode('utf-8'))==hashed.encode('utf-8')):
-                print("test enter2")
-                flash('Successfully logged in as'+username)
-                session['username']=username
-                session['logged_in']= True
-                return redirect(url_for('home'))
-            else:
-                flash('Login failed. Please register or try again')
-                return redirect(url_for('login'))
-        except Exception as err:
-            flash('From submission error'+str(err))
+    else:'''
+    try:
+        print("test enter")
+        username=request.form['username']
+        password=request.form['password']
+        conn=getConn()
+        curs=conn.cursor(MySQLdb.cursors.DictCursor)
+        curs.execute('select hashed from user where email=%s',[username])
+        row=curs.fetchone()
+        if row is None:
+            flash('Login failed. Please register or try again')
             return redirect(url_for('home'))
-            
+        hashed=row['password']
+        if bcrypt.hashpw(password.encode('utf-8'),hashed.encode('utf-8'))==hashed:
+            print("test enter1")
+            flash('Login failed. Please register or try again')
+            return redirect(url_for('home'))
+        hashed=row['password']
+        if (bcrypt.hashpw(password.encode('utf-8'),hashed.encode('utf-8'))==hashed.encode('utf-8')):
+            print("test enter2")
+            flash('Successfully logged in as'+username)
+            session['username']=username
+            session['logged_in']= True
+            return redirect(url_for('home'))
+        else:
+            flash('Login failed. Please register or try again')
+            return redirect(url_for('login'))
+    except Exception as err:
+        flash('From submission error'+str(err))
+        return redirect(url_for('home'))
+        
 
 @app.route('/loginPage/',methods=["POST"])  
 def redirectToLogin():
@@ -167,7 +166,6 @@ def jobPosterPage(email):
     return render_template('jobPoster.html',
                             email=email)                           
 
-'''
 #route to page that allows student to view profile and add skills    
 @app.route("/studentProfile/<email>", methods = ['GET', 'POST'])
 #@login_required
@@ -212,17 +210,13 @@ def project(pid):
 @app.route('/insertProject/')
 def insertProject():
     return render_template('insertProject.html')
-<<<<<<< HEAD
-    
-=======
 
 # insert page form handling 
 @app.route('/insertProject/', methods=['GET','POST'])
 def submit_insertProject():
-    '''Route to page that allows student to view profile and add skills.
-       The student profile is for the student that is currently logged in.
-    '''
->>>>>>> 35fd6e7d02b97dc3ceff00a7d412088f48446f28
+'''Route to page that allows student to view profile and add skills.
+   The student profile is for the student that is currently logged in.
+'''
 @app.route("/studentProfile/<email>", methods = ['GET'])
 #@login_required
 def studentProfile(email):
@@ -235,10 +229,8 @@ def studentProfile(email):
                         email = studentInfo['email'],
                         active = studentInfo['active'],
                         skills = skills)
-'''
  
-'''Route to page to update student profile'''
-'''
+'''Route to page to update student profile'''                             
 @app.route("/studentUpdate/<email>", methods = ['GET', 'POST'])
 def studentUpdate(email):
     conn = clickDatabase.getConn('clickdb')
@@ -283,8 +275,7 @@ def studentUpdate(email):
         else:
             return redirect(url_for('studentProfile',
                             email = studentInfo['email']))
-'''
-
+                            
 @app.route("/jobs", methods = ['GET', 'POST'])
 def jobs():
     conn = getConn()
@@ -296,68 +287,30 @@ def jobs():
             search = request.form.get('searchJobs')
             filteredJobs = clickDatabase.searchJobs(conn, search)
             return render_template('jobs.html', jobs = filteredJobs)
-            
-@app.route("/filterProjects/sortBy", methods = ['GET', 'POST'])
-def filterProjects():
-    '''Routes that deal with sorting and filtering project'''
-    conn=getConn()
-    dropdown=request.form.get("menu-tt")
-    checkbox=request.form.get("type")
-    projectByLocation=search_project.getProjectByLocation(conn,checkbox)
-    allProjects=search_project.getAllProjects(conn)
-    
-    #when no dropdown is selected
-    if dropdown =="none":
-        #when checkbox is also not selected
-        if checkbox is None:
-            return render_template('project.html',allProjects=allProjects)
-        #when checkbox is selected
-        else:
-            #there is no project of the selected location
-            if(len(projectByLocation)==0):
-                flash("There are no projects in the chosen location: "+ checkbox)
-            return render_template('project.html',allProjects=projectByLocation)
-    #dropdown is selected
-    else:
-        #check box not selected
-        if checkbox is None:
-            if(dropdown=="Min Hours Ascending"):
-                sortedProjects=search_project.sortProectByMinHoursAscending(conn)
-                return render_template('project.html',allProjects=sortedProjects)
-            elif(dropdown=="Pay Descending"):
-                sortedProjects=search_project.sortProectByPayDescending(conn)
-                return render_template('project.html',allProjects=sortedProjects)
-            elif(dropdown=="Alphabetical By Location"):
-                sortedProjects=search_project.sortProjectByLocation(conn)
-                return render_template('project.html',allProjects=sortedProjects)
-        #both dropdown and checkbox selected
-        else:
-            multiFilter=search_project.multipleFilters(conn,checkbox,dropdown)
-            return render_template('project.html',allProjects=multiFilter)
 
-#route to page that allows job poster to see his/her current projects     
-@app.route("/project/<pid>", methods = ['GET', 'POST'])
-def project(pid):
-    conn = clickDatabase.getConn('clickdb')
-    #if GET, renders page with all information about that project in database
+#route to page that allows job poster to see his/her current postings     
+@app.route("/posting/<pid>", methods = ['GET', 'POST'])
+def posting(pid):
+    conn = getConn()
+    #if GET, renders page with all information about that posting in database
     if request.method == 'GET':
-        projectInfo = clickDatabase.getProject(conn, pid)
-        return render_template('project.html',
-                            name = projectInfo['name'],
-                            minHours = projectInfo['minHours'],
-                            pay = projectInfo['pay'],
-                            location = projectInfo['location'],
+        postingInfo = clickDatabase.getPosting(conn, pid)
+        return render_template('posting.html',
+                            name = postingInfo['name'],
+                            minHours = postingInfo['minHours'],
+                            pay = postingInfo['pay'],
+                            location = postingInfo['location'],
                             )
 
 # insert page
-@app.route('/insertProject/')
-def insertProject():
-    return render_template('insertProject.html')
+@app.route('/insertPosting/')
+def insertPosting():
+    return render_template('insertPosting.html')
 
 # insert page form handling 
-@app.route('/insertProject/', methods=['GET','POST'])
-def submit_insertProject():
-    conn = clickDatabase.getConn('clickdb')
+@app.route('/insertPosting/', methods=['GET','POST'])
+def submit_insertPosting():
+    conn = getConn()
     if request.method == 'POST':
     
         # checking database to see if the given pid is in use 
@@ -402,14 +355,12 @@ def submit_insertProject():
                 flash("Project already exists")
             return redirect(url_for('updateProject', pid = request.form['project-pid']))
 
-'''
 # setting up page with projects
 @app.route('/selectProject/')
 def selectProject():
-    conn = getConn()
+    conn = clickDatabase.getConn('clickdb')
     allProjects = clickDatabase.find_allProjects(conn)
     return render_template('selectProject.html', allProjects=allProjects)
-<<<<<<< HEAD
         if (clickDatabase.search_posting_pid(conn, request.form['posting-pid'])) != None:
             flash('bad input: project\'s pid already in use.')
             return render_template('insertPosting.html')
@@ -450,7 +401,6 @@ def selectProject():
             else:
                 flash("Posting already exists")
             return redirect(url_for('updatePosting', pid = request.form['movie-posting']))
-'''
 
 # setting up page with postings
 @app.route('/selectPosting/')
@@ -458,13 +408,11 @@ def selectPosting():
     conn = getConn()
     allPostings = clickDatabase.find_allPostings(conn)
     return render_template('selectPosting.html', allPostings=allPostings)
-=======
->>>>>>> 35fd6e7d02b97dc3ceff00a7d412088f48446f28
 
     
 # returns true when a SQL query's result is not empty
 def isValid(results):
-    return results is not None
+    return results != None
     
 # select page form handling
 @app.route('/selectProject/', methods=['GET','POST'])
@@ -476,6 +424,15 @@ def select_project():
     else: 
         flash('Please select a project')
         return render_template('selectProject.html')
+@app.route('/selectPosting/', methods=['GET','POST'])
+def select_posting():
+    conn = clickDatabase.getConn('clickdb')
+    pid = request.form.get('select-name') ###????
+    if isValid(pid):
+        return redirect(url_for('updatePosting', pid=pid))
+    else: 
+        flash('Please select a project posting')
+        return render_template('selectPosting.html')
 
         
 # search page
@@ -491,24 +448,12 @@ def search_student():
     email = clickDatabase.get_email(conn, name)
     if isValid(email):
         return redirect(url_for('updateProject', email=email))
-
+        return redirect(url_for('updatePosting', email=email))
     else: 
         flash('Requested student does not exist')
         return render_template
         
 
-@app.route("/students", methods = ['GET', 'POST'])
-def students():
-    conn = clickDatabase.getConn('clickdb')
-    if request.method == 'GET':
-        students = clickDatabase.getStudents(conn)
-        return render_template('students.html', students = students)
-    else:
-        if request.form['submit'] == 'Search':
-            search = request.form.get('searchsStudents')
-            filteredStudents = clickDatabase.searchStudents(conn, search)
-            return render_template('students.html', jobs = filteredStudents)
-
 if __name__ == '__main__':
     app.debug = True
-    app.run('0.0.0.0',8081)
+    app.run('0.0.0.0',8080)

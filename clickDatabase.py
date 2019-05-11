@@ -13,16 +13,19 @@ def getConn(db):
     conn.autocommit(True)
     return conn
 
-#gets student's profile from database
-def getStudent(conn, email):
-    curs = conn.cursor(MySQLdb.cursors.DictCursor)
-    curs.execute('''Select * from user where email = %s''', [email])
-    return curs.fetchone()
 
 #get all student's skills from database    
+<<<<<<< HEAD
+
+import threading
+from connection import getConn
+
+
+=======
 import threading
 from connection import getConn
 import re
+>>>>>>> 83ff4049c0cd53beb03af46781f41625937ed593
 
 '''Gets student's information (name, email) from database'''
 def getStudent(conn, email):
@@ -38,6 +41,9 @@ def studentSkills(conn, email):
     where hasSkill.email = %s''', [email])
     return curs.fetchall()
     
+<<<<<<< HEAD
+
+=======
 #removes skill from student  
 def removeSkill(conn, email, skill):
     curs = conn.cursor(MySQLdb.cursors.DictCursor)
@@ -47,6 +53,7 @@ def removeSkill(conn, email, skill):
     return nr
 
 #adds skill to student    
+>>>>>>> 83ff4049c0cd53beb03af46781f41625937ed593
 '''Removes skill from student'''  
 def removeSkill(conn, email, skill):
     curs = conn.cursor(MySQLdb.cursors.DictCursor)
@@ -55,10 +62,18 @@ def removeSkill(conn, email, skill):
     return nr
 
 '''Adds skill to student'''    
+<<<<<<< HEAD
+
+=======
+>>>>>>> 83ff4049c0cd53beb03af46781f41625937ed593
 def addSkill(conn, email, skill):
     curs = conn.cursor(MySQLdb.cursors.DictCursor)
 
     curs.execute('''Select sid from skills where skill = %s''', [skill])
+<<<<<<< HEAD
+
+=======
+>>>>>>> 83ff4049c0cd53beb03af46781f41625937ed593
     skillNum = curs.fetchone()
     #if skill not in skills table, add it
     if skillNum == None:
@@ -69,6 +84,10 @@ def addSkill(conn, email, skill):
     nr = curs.execute('''insert into hasSkill(email, sid) values (%s, %s)''', [email, skillNum.values()[0]])
     return nr
     
+<<<<<<< HEAD
+
+=======
+>>>>>>> 83ff4049c0cd53beb03af46781f41625937ed593
     skillQuery = curs.fetchone() #stores results from query to get skills
     #if skill not in skills table, add it
     if skillQuery == None:
@@ -103,6 +122,10 @@ def searchJobs(conn, search):
     curs.execute('''select pid, name, minHours, pay, location from project
                     where name like %s''', ['%'+ search + '%'])
     return curs.fetchall()
+<<<<<<< HEAD
+    
+=======
+>>>>>>> 83ff4049c0cd53beb03af46781f41625937ed593
 
 #adds a new user
 def addUser(conn,email,password):
@@ -110,26 +133,49 @@ def addUser(conn,email,password):
     newrow=curs.execute('''insert into user(email,password) values (%s,%s)''',[email,password])
     return newrow
     
+<<<<<<< HEAD
+
+#put rest of our functions here
+
+
+#get info about a project 
+def getProject(conn, pid):
+=======
 #put rest of our functions here
 
 
 #get info about a posting 
 def getPosting(conn, pid):
+>>>>>>> 83ff4049c0cd53beb03af46781f41625937ed593
     curs = conn.cursor(MySQLdb.cursors.DictCursor)
     curs.execute('''Select * from project where pid = %s''', [pid])
     return curs.fetchone()
    
 #SQL query to get pid, name, pay, minimum hours, location from project table using the pid    
 
+<<<<<<< HEAD
+def search_project_pid(conn, pid): 
+=======
 
 def search_posting_pid(conn, pid): 
 
+>>>>>>> 83ff4049c0cd53beb03af46781f41625937ed593
     curs = conn.cursor()
     curs.execute('''select pid,name,pay,minHours,
     location from project where pid = %s;''',
                     [pid])
     return curs.fetchone()  
 
+<<<<<<< HEAD
+#SQL code to insert project using pid, name, pay, minimum hours, location    
+def insert_project(conn, pid, name, pay, minHours, location): 
+    curs = conn.cursor()
+    curs.execute('''insert into project(pid,name,minHours, location) values (%s,%s,%s, %s);''',
+                    [pid,name,minHours,location])
+    return curs
+  
+
+=======
 
 
 
@@ -141,6 +187,7 @@ values (%s,%s,%s, %s);''',
                     [pid,name,minHours,location])
     return curs
   
+>>>>>>> 83ff4049c0cd53beb03af46781f41625937ed593
 #SQL query to get a list of all current projects    
 def find_allProjects(conn):
     curs = conn.cursor()
@@ -149,6 +196,18 @@ def find_allProjects(conn):
     allProjects = curs.fetchall()
     return allProjects;
 
+<<<<<<< HEAD
+def getStudents(conn):
+    curs = conn.cursor(MySQLdb.cursors.DictCursor)
+    curs.execute('''select email, name, active, userType from project''')
+    return curs.fetchall()
+    
+def searchStudents(conn, search):
+    curs = conn.cursor(MySQLdb.cursors.DictCursor)
+    curs.execute('''select email, name, active, userType from project
+                    where name like %s''', ['%'+ search + '%'])
+    return curs.fetchall()
+=======
 #SQL query to get a list of all current postings    
 def find_allPostings(conn):
     curs = conn.cursor()
@@ -156,6 +215,7 @@ def find_allPostings(conn):
     location from project;''')
     allPostings = curs.fetchall()
     return allPostings;
+>>>>>>> 83ff4049c0cd53beb03af46781f41625937ed593
 
 
 #add a new job posting
@@ -174,6 +234,8 @@ def get_email(conn, name):
     email = curs.fetchone()
     return email[0]
 
+<<<<<<< HEAD
+=======
    
 if __name__ == '__main__':
     conn = getConn('clickdb')
@@ -181,6 +243,7 @@ if __name__ == '__main__':
     #print(removeSkill(conn, "student1@gmail.com", "math tutoring"))
     #studentSkills(conn, "student1@gmail.com")
 
+>>>>>>> 83ff4049c0cd53beb03af46781f41625937ed593
 
    
 if __name__ == '__main__':

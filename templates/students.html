@@ -1,12 +1,7 @@
 <!--CS 304 Project
-Gabby
+Dana 
 Page that lists all available students-->
-
-
-{% extends "jobPoster.html" %}
-
-{% block title %} Search {% endblock %}
-
+{% extends "home.html" %}
 
 {%block content %}
 
@@ -14,8 +9,8 @@ Page that lists all available students-->
 
 <form method="POST" action="">
     <p>
-    <label for="searchStudents">Search:</label>
-    <input id="searchStudents" name="searchStudents" type="text" >
+    <label for="searchstudents">Search:</label>
+    <input id="searchstudents" name="searchstudents" type="text" >
     <input class="submit" name="submit" type="submit" value="Search">
     </p>
     
@@ -23,15 +18,14 @@ Page that lists all available students-->
 
 <table id="studentsList">
     <tr>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Status</th>
-        <th>Type</th>
+        <th>Student Name</th>
+        <th>Student Email</th>
+        <th>Active Type</th>
     </tr>
     {% for student in students %}
         <tr name={{student.email}}>
         <td class="name">{{student.name}}</td>
-        <td class="active">{{student.active}}</td>
+        <td class="email">{{student.email}}</td>
         <td class="userType">{{student.userType}}</td>
         <!-- <td><form method="post" action="{{url_for('jobs')}}">
             <input type="submit" id="applyButton" value="Apply">
